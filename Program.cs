@@ -1,9 +1,13 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using TraineeManagementApi.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSingleton<ITraineeService, TraineeService>();
 // builder.Services.AddSwaggerGen();
 
 var app = builder.Build();

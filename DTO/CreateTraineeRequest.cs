@@ -1,12 +1,17 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 using Microsoft.EntityFrameworkCore;
 
-namespace TraineeManagementApi.Models;
+namespace TraineeManagementApi.DTO;
 
-public class Trainee{
-    public long Id {get; set;}
+public enum TraineeStatus {
+    Active,
+    Inactive
+}
+
+public class CreateTraineeRequest{
 
     [Required(ErrorMessage = "First name is required.")]
     [MaxLength(50, ErrorMessage = "First name length can't be more than 50.")]
@@ -24,9 +29,6 @@ public class Trainee{
     public string TechStack {get; set;}
 
     [Required(ErrorMessage = "Status is required.")]
+    [EnumDataType(typeof(TraineeStatus), ErrorMessage = "Invalid status")]
     public string Status {get; set;}
-    
-    public DateTime CreatedDate {get; set;}
-
-    public DateTime UpdatedDate {get; set;}
 }
