@@ -13,8 +13,8 @@ namespace TranineeManagementApi.Controllers {
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() {
-            return Ok(await _service.GetAllAsync());
+        public async Task<IActionResult> GetAll(string search = "") {
+            return Ok(await _service.GetAllAsync(search));
         }
 
         [HttpGet("{id}")] 

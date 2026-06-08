@@ -12,8 +12,14 @@ namespace TraineeManagementApi.Services {
             _context = context;
         }
 
-        public async Task<List<TraineeResponse>> GetAllAsync() {
+        public async Task<List<TraineeResponse>> GetAllAsync(string search) {
             var trainees = await _context.Trainees.ToListAsync();
+
+            if(search != "")
+            {
+                var results = trainees.Where(t => t.FirstName.Contains(search) || t.LastName.Contains(search) || t.Email.Contains(search) || t.TechStack.Contains(search)).ToList();
+                return results.Select(MaptoResponse).ToList();
+            }
 
             return trainees.Select(MaptoResponse).ToList();
         }

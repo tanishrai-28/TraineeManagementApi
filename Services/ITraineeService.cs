@@ -3,7 +3,7 @@ using TraineeManagementApi.DTO;
 namespace TraineeManagementApi.Services {
 
     public interface ITraineeService{
-        Task<List<TraineeResponse>> GetAllAsync();
+        Task<List<TraineeResponse>> GetAllAsync(string search);
 
         Task<TraineeResponse?> GetByIdAsync(long id);
 
