@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using TraineeManagementApi.Models;
 using TraineeManagementApi.DTO;
 using TraineeManagementApi.Services;
 
@@ -14,13 +13,13 @@ namespace TranineeManagementApi.Controllers {
         }
 
         [HttpGet]
-        public IActionResult GetAll() {
-            return Ok(_service.GetAll());
+        public async Task<IActionResult> GetAll() {
+            return Ok(await _service.GetAllAsync());
         }
 
         [HttpGet("{id}")] 
-        public IActionResult GetTrainee(int id) {
-            var trainee = _service.GetById(id);
+        public async Task<IActionResult> GetTrainee(long id) {
+            var trainee = await _service.GetByIdAsync(id);
 
             if(trainee == null) return NotFound();
 
@@ -28,8 +27,8 @@ namespace TranineeManagementApi.Controllers {
         }
 
         [HttpPost]
-        public IActionResult Create(CreateTraineeRequest request) {
-            var trainee =  _service.Create(request);
+        public async Task<IActionResult> Create(CreateTraineeRequest request) {
+            var trainee = await _service.CreateAsync(request);
 
             return Created("/api/trainees",
                 trainee
@@ -37,8 +36,8 @@ namespace TranineeManagementApi.Controllers {
         }
 
         [HttpPut("{id}")] 
-        public IActionResult Update(long id, UpdateTraineeRequest request) {
-            bool updated = _service.Update(id, request);
+        public async Task<IActionResult> Update(long id, UpdateTraineeRequest request) {
+            bool updated = await _service.UpdateAsync(id, request);
 
             if(!updated) {
                 return NotFound();
@@ -48,8 +47,8 @@ namespace TranineeManagementApi.Controllers {
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(long id) {
-            bool deleted = _service.Delete(id);
+        public async Task<IActionResult> Delete(long id) {
+            bool deleted = await _service.DeleteAsync(id);
 
             if(!deleted) {
                 return NotFound();

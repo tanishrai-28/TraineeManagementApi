@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Services;
+using TraineeManagementApi.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,8 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSingleton<ITraineeService, TraineeService>();
-// builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseInMemoryDatabase("TraineeManagementDb");
+});
+builder.Services.AddScoped<ITraineeService, TraineeService>();
+
 
 var app = builder.Build();
 

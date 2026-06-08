@@ -1,25 +1,31 @@
 using TraineeManagementApi.DTO;
 using TraineeManagementApi.Models;
-using TraineeManagementApi.Services;
+using TraineeManagementApi.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace TraineeManagementApi.Services {
     public class TraineeService: ITraineeService {
-        private static List<Trainee> trainees = new List<Trainee>();
-        private static int nextId = 1;
+        private readonly ApplicationDbContext _context;
 
-        public List<TraineeResponse> GetAll() {
+        public TraineeService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<TraineeResponse>> GetAllAsync() {
+            var trainees = await _context.Trainees.ToListAsync();
+
             return trainees.Select(MaptoResponse).ToList();
         }
 
-        public TraineeResponse GetById (long id) {
-            var trainee = trainees.FirstOrDefault(trainee => trainee.Id == id);
+        public async Task<TraineeResponse> GetByIdAsync (long id) {
+            var trainee = await _context.Trainees.FindAsync(id);
 
             return trainee == null ? null : MaptoResponse(trainee);
         }
 
-        public TraineeResponse Create(CreateTraineeRequest request) {
+        public async Task<TraineeResponse> CreateAsync(CreateTraineeRequest request) {
             var trainee = new Trainee(){
-                Id= nextId++,
                 FirstName= request.FirstName,
                 LastName= request.LastName,
                 Email= request.Email,
@@ -29,12 +35,15 @@ namespace TraineeManagementApi.Services {
                 UpdatedDate= DateTime.UtcNow
             };
 
-            trainees.Add(trainee);
+            await _context.Trainees.AddAsync(trainee);
+
+            await _context.SaveChangesAsync();
+
             return MaptoResponse(trainee);
         }
 
-        public bool Update(long id, UpdateTraineeRequest request) {
-            var trainee = trainees.FirstOrDefault(trainee => trainee.Id == id);
+        public async Task<bool> UpdateAsync(long id, UpdateTraineeRequest request) {
+            var trainee = await _context.Trainees.FindAsync(id);
 
             if(trainee == null) return false;
 
@@ -43,16 +52,21 @@ namespace TraineeManagementApi.Services {
             trainee.Email = request.Email;
             trainee.TechStack = request.TechStack;
             trainee.Status = request.Status;
+            trainee.UpdatedDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
 
             return true;
         }
 
-        public bool Delete(long id) {
-            var trainee = trainees.FirstOrDefault(trainee => trainee.Id == id);
+        public async Task<bool> DeleteAsync(long id) {
+            var trainee = await _context.Trainees.FindAsync(id);
 
             if(trainee == null) return false;
 
-            trainees.Remove(trainee);
+            _context.Trainees.Remove(trainee);
+
+            await _context.SaveChangesAsync();
 
             return true;
         }

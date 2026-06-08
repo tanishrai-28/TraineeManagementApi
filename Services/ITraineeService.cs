@@ -3,15 +3,15 @@ using TraineeManagementApi.DTO;
 namespace TraineeManagementApi.Services {
 
     public interface ITraineeService{
-        List<TraineeResponse> GetAll();
+        Task<List<TraineeResponse>> GetAllAsync();
 
-        TraineeResponse GetById(long id);
+        Task<TraineeResponse?> GetByIdAsync(long id);
 
-        TraineeResponse Create(CreateTraineeRequest request);
+        Task<TraineeResponse> CreateAsync(CreateTraineeRequest request);
 
-        bool Update(long id, UpdateTraineeRequest request);
+        Task<bool> UpdateAsync(long id, UpdateTraineeRequest request);
 
-        bool Delete(long id);
+        Task<bool> DeleteAsync(long id);
     }
 
 }
