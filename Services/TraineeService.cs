@@ -16,8 +16,8 @@ namespace TraineeManagementApi.Services
 
         public async Task<List<TraineeResponse>> GetAllAsync(string search)
         {
-            try
-            {
+            // try
+            // {
                 var trainees = await _context.Trainees.ToListAsync();
 
                 if (search != "")
@@ -27,33 +27,33 @@ namespace TraineeManagementApi.Services
                 }
 
                 return trainees.Select(MaptoResponse).ToList();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error while getting all trainees ", e);
-            }
+            // }
+            // catch (Exception e)
+            // {
+            //     throw new Exception("Error while getting all trainees ", e);
+            // }
 
         }
 
         public async Task<TraineeResponse> GetByIdAsync(long id)
         {
-            try
-            {
+            // try
+            // {
                 var trainee = await _context.Trainees.FindAsync(id);
 
                 return trainee == null ? null : MaptoResponse(trainee);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to retrieve trianee with id {id} ", e);
-            }
+            // }
+            // catch (Exception e)
+            // {
+            //     throw new Exception($"Failed to retrieve trianee with id {id} ", e);
+            // }
 
         }
 
         public async Task<TraineeResponse> CreateAsync(CreateTraineeRequest request)
         {
-            try
-            {
+            // try
+            // {
                 var trainee = new Trainee()
                 {
                     FirstName = request.FirstName,
@@ -70,18 +70,18 @@ namespace TraineeManagementApi.Services
                 await _context.SaveChangesAsync();
 
                 return MaptoResponse(trainee);
-            }
-            catch (Exception e)
-            {
+            // }
+            // catch (Exception e)
+            // {
 
-                throw new Exception("Failed to create trainee -> ", e);
-            }
+            //     throw new Exception("Failed to create trainee -> ", e);
+            // }
         }
 
         public async Task<bool> UpdateAsync(long id, UpdateTraineeRequest request)
         {
-            try
-            {
+            // try
+            // {
                 var trainee = await _context.Trainees.FindAsync(id);
 
                 if (trainee == null) return false;
@@ -96,18 +96,18 @@ namespace TraineeManagementApi.Services
                 await _context.SaveChangesAsync();
 
                 return true;
-            }
-            catch (Exception e)
-            {
+            // }
+            // catch (Exception e)
+            // {
 
-                throw new Exception($"Error while updating trainee with id {id} -> ", e);
-            }
+            //     throw new Exception($"Error while updating trainee with id {id} -> ", e);
+            // }
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            try
-            {
+            // try
+            // {
                 var trainee = await _context.Trainees.FindAsync(id);
 
                 if (trainee == null) return false;
@@ -117,12 +117,12 @@ namespace TraineeManagementApi.Services
                 await _context.SaveChangesAsync();
 
                 return true;
-            }
-            catch (Exception e)
-            {
+            // }
+            // catch (Exception e)
+            // {
 
-                throw new Exception($"Failed to delete trainee with id {id} -> ", e);
-            }
+            //     throw new Exception($"Failed to delete trainee with id {id} -> ", e);
+            // }
         }
 
         private TraineeResponse MaptoResponse(Trainee trainee)
