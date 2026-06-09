@@ -16,7 +16,7 @@ namespace TranineeManagementApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search)
+        public async Task<IActionResult> GetAll(string search = "")
         {
             try
             {
