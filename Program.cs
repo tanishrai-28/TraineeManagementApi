@@ -4,6 +4,8 @@ using TraineeManagementApi.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("MySQL")!;
+
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -11,7 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseInMemoryDatabase("TraineeManagementDb");
+    options.UseMySQL(connectionString);
 });
 builder.Services.AddScoped<ITraineeService, TraineeService>();
 
