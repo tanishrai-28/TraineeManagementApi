@@ -2,59 +2,150 @@ using Microsoft.AspNetCore.Mvc;
 using TraineeManagementApi.DTO;
 using TraineeManagementApi.Services;
 
-namespace TranineeManagementApi.Controllers {
+namespace TranineeManagementApi.Controllers
+{
     [ApiController]
     [Route("api/[controller]")]
-    public class TraineesController: ControllerBase {
-        public readonly ITraineeService _service; 
+    public class TraineesController : ControllerBase
+    {
+        public readonly ITraineeService _service;
 
-        public TraineesController(ITraineeService service) {
+        public TraineesController(ITraineeService service)
+        {
             _service = service;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(string search = "") {
-            return Ok(await _service.GetAllAsync(search));
+        public async Task<IActionResult> GetAll([FromQuery] string? search)
+        {
+            try
+            {
+                return Ok(await _service.GetAllAsync(search));
+            }
+            catch
+            {
+                return StatusCode(500, new
+                {
+                    Message = "An unexpected error occured"
+                });
+            }
         }
 
-        [HttpGet("{id}")] 
-        public async Task<IActionResult> GetTrainee(long id) {
-            var trainee = await _service.GetByIdAsync(id);
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetTrainee(long id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    Message = "id must be greater than equal to 0"
+                });
+            }
 
-            if(trainee == null) return NotFound();
+            try
+            {
+                var trainee = await _service.GetByIdAsync(id);
 
-            return Ok(trainee);
+                if (trainee == null) return NotFound();
+
+                return Ok(trainee);
+            }
+            catch
+            {
+                return StatusCode(500, new
+                {
+                    Message = "An unexpected error occured"
+                });
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateTraineeRequest request) {
-            var trainee = await _service.CreateAsync(request);
+        public async Task<IActionResult> Create(CreateTraineeRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    Message = "Request body cannot be empty"
+                });
+            }
+            try
+            {
+                var trainee = await _service.CreateAsync(request);
 
-            return Created("/api/trainees",
-                trainee
-            );
+                return Created("/api/trainees",
+                    trainee
+                );
+            }
+            catch
+            {
+                return StatusCode(500, new
+                {
+                    Message = "An unexpected error occured"
+                });
+            }
         }
 
-        [HttpPut("{id}")] 
-        public async Task<IActionResult> Update(long id, UpdateTraineeRequest request) {
-            bool updated = await _service.UpdateAsync(id, request);
-
-            if(!updated) {
-                return NotFound();
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(long id, UpdateTraineeRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    Message = "Request body cannot be empty"
+                });
             }
 
-            return Ok();
+            try
+            {
+                bool updated = await _service.UpdateAsync(id, request);
+
+                if (!updated)
+                {
+                    return NotFound();
+                }
+
+                return Ok();
+            }
+            catch
+            {
+                return StatusCode(500, new
+                {
+                    Message = "An unexpected error occured"
+                });
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(long id) {
-            bool deleted = await _service.DeleteAsync(id);
-
-            if(!deleted) {
-                return NotFound();
+        public async Task<IActionResult> Delete(long id)
+        {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    Message = "id must be greater than equal to 0"
+                });
             }
 
-            return NoContent();
+            try
+            {
+                bool deleted = await _service.DeleteAsync(id);
+
+                if (!deleted)
+                {
+                    return NotFound();
+                }
+
+                return NoContent();
+            }
+            catch
+            {
+                return StatusCode(500, new
+                {
+                    Message = "An unexpected error occured"
+                }); 
+            }
         }
 
     }
