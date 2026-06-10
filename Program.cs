@@ -2,10 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Services;
 using TraineeManagementApi.Context;
 
+using TraineeManagementApi.Models;
+using TraineeManagementApi.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("MySQL")!;
-
+// var connectionString = builder.Configuration.GetValue<string>("ConnectionStrings:MySQL");
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -16,6 +22,23 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySQL(connectionString);
 });
 builder.Services.AddScoped<ITraineeService, TraineeService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+    };
+});
+
+builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
@@ -32,8 +55,32 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+using(var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if(!context.Users.Any())
+    {
+        context.Users.Add(new User
+        {
+            Username = "admin",
+            Email = "admin@test.com",
+            PasswordHash = PasswordHasher.HashPassword("Admin@123"),
+            Role = RoleType.Admin,
+            CreatedDate = DateTime.UtcNow,
+            UpdatedDate = DateTime.UtcNow
+        });
+
+        context.SaveChanges();
+    }
+}
+
 
 app.Run();
