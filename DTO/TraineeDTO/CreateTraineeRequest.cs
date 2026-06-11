@@ -1,8 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TraineeManagementApi.DTO;
+namespace TraineeManagementApi.DTO.TraineeDTO;
 
-public class UpdateTraineeRequest{
+public enum TraineeStatus {
+    Active,
+    Inactive
+}
+
+public class CreateTraineeRequest{
+
     [Required(ErrorMessage = "First name is required.")]
     [MaxLength(50, ErrorMessage = "First name length can't be more than 50.")]
     public required string FirstName {get; set;}

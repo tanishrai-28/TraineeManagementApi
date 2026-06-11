@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Services;
+using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Context;
 
 using TraineeManagementApi.Models;

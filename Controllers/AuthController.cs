@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using TraineeManagementApi.DTO;
-using TraineeManagementApi.Services;
+using TraineeManagementApi.Services.Interface;
+using TraineeManagementApi.DTO.UserDTO;
 
 namespace TraineeManagementApi.Controllers;
 

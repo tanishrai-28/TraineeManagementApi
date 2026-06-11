@@ -1,4 +1,4 @@
-namespace TraineeManagementApi.DTO;
+namespace TraineeManagementApi.DTO.TraineeDTO;
 
 public class TraineeResponse{
     public long Id {get; set;}

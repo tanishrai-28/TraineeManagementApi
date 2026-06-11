@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace TraineeManagementApi.DTO;
+namespace TraineeManagementApi.DTO.UserDTO;
 
 public class LoginResponse
 {

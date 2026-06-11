@@ -1,4 +1,3 @@
-using TraineeManagementApi.DTO;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.Helpers;
@@ -7,6 +6,8 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using TraineeManagementApi.Services.Interface;
+using TraineeManagementApi.DTO.UserDTO;
 
 namespace TraineeManagementApi.Services;
 

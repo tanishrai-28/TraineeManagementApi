@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TraineeManagementApi.DTO;
+using TraineeManagementApi.DTO.TraineeDTO;
 using TraineeManagementApi.DTO.Pagination;
-using TraineeManagementApi.Services;
+using TraineeManagementApi.Services.Interface;
 
 namespace TraineeManagementApi.Controllers
 {

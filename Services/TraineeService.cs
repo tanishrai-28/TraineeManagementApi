@@ -1,10 +1,10 @@
-using TraineeManagementApi.DTO;
+using TraineeManagementApi.DTO.TraineeDTO;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Context;
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.Helpers;
-using Org.BouncyCastle.Ocsp;
+using TraineeManagementApi.Services.Interface;
 
 namespace TraineeManagementApi.Services
 {
