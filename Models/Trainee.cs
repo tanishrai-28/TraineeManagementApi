@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace TraineeManagementApi.Models;
 
 public class Trainee{
+    [Key]
     public long Id {get; set;}
 
     [Required(ErrorMessage = "First name is required.")]

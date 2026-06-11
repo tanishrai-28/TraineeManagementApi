@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TraineeManagementApi.DTO;
 using TraineeManagementApi.Services;
@@ -16,6 +17,8 @@ namespace TranineeManagementApi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
+
         public async Task<IActionResult> GetAll(string search = "")
         {
             try
@@ -32,6 +35,7 @@ namespace TranineeManagementApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetTrainee(long id)
         {
             if (id <= 0)
@@ -60,6 +64,8 @@ namespace TranineeManagementApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Create(CreateTraineeRequest request)
         {
             if (request == null)
@@ -87,6 +93,7 @@ namespace TranineeManagementApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> Update(long id, UpdateTraineeRequest request)
         {
             if (request == null)
@@ -118,6 +125,7 @@ namespace TranineeManagementApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(long id)
         {
             if (id <= 0)
@@ -144,7 +152,7 @@ namespace TranineeManagementApi.Controllers
                 return StatusCode(500, new
                 {
                     Message = "An unexpected error occured"
-                }); 
+                });
             }
         }
 
