@@ -2,6 +2,8 @@ using TraineeManagementApi.DTO;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Context;
 using Microsoft.EntityFrameworkCore;
+using TraineeManagementApi.DTO.Pagination;
+using TraineeManagementApi.Helpers;
 
 namespace TraineeManagementApi.Services
 {
@@ -14,24 +16,50 @@ namespace TraineeManagementApi.Services
             _context = context;
         }
 
-        public async Task<List<TraineeResponse>> GetAllAsync(string search)
+        public async Task<List<TraineeResponse>> GetAllAsync(TraineeQueryFilter filter, CancellationToken cancellationToken = default) 
         {
-            // try
-            // {
-                var trainees = await _context.Trainees.ToListAsync();
+            var pageNumber = Math.Max(1, filter.PageNumber);
+            var pageSize = Math.Clamp(filter.PageSize, 1, 50);
 
-                if (search != "")
+            var query = _context.Trainees.AsNoTracking().AsQueryable();
+
+            // search
+            query = query.ApplySearch(filter.Search);
+            query = query.ApplyFilter(filter.Status);
+
+            var totalRecords = await query.CountAsync(cancellationToken);
+
+            var trainees = await query
+                .ApplyPagination(pageNumber, pageSize)
+                .Select(t => new TraineeResponse
                 {
-                    var results = trainees.Where(t => t.FirstName.Contains(search) || t.LastName.Contains(search) || t.Email.Contains(search) || t.TechStack.Contains(search)).ToList();
-                    return results.Select(MaptoResponse).ToList();
-                }
+                    Id=t.Id,
+                    FirstName = t.FirstName,
+                    LastName = t.LastName,
+                    Email = t.Email,
+                    TechStack = t.TechStack,
+                    Status = t.Status
+                })
+                .ToListAsync();
 
-                return trainees.Select(MaptoResponse).ToList();
-            // }
-            // catch (Exception e)
-            // {
-            //     throw new Exception("Error while getting all trainees ", e);
-            // }
+            return trainees;
+
+            // // try
+            // // {
+            //     var trainees = await _context.Trainees.ToListAsync();
+
+            //     if (search != "")
+            //     {
+            //         var results = trainees.Where(t => t.FirstName.Contains(search) || t.LastName.Contains(search) || t.Email.Contains(search) || t.TechStack.Contains(search)).ToList();
+            //         return results.Select(MaptoResponse).ToList();
+            //     }
+
+            //     return trainees.Select(MaptoResponse).ToList();
+            // // }
+            // // catch (Exception e)
+            // // {
+            // //     throw new Exception("Error while getting all trainees ", e);
+            // // }
 
         }
 

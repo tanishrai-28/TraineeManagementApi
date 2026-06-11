@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TraineeManagementApi.DTO;
+using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.Services;
 
-namespace TranineeManagementApi.Controllers
+namespace TraineeManagementApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -18,18 +19,18 @@ namespace TranineeManagementApi.Controllers
 
         [HttpGet]
         [Authorize]
-
-        public async Task<IActionResult> GetAll(string search = "")
+        public async Task<IActionResult> GetAll([FromQuery] TraineeQueryFilter filter, CancellationToken cancellationToken = default)
         {
             try
             {
-                return Ok(await _service.GetAllAsync(search));
+                return Ok(await _service.GetAllAsync(filter, cancellationToken));
             }
-            catch
+            catch (Exception e)
             {
                 return StatusCode(500, new
                 {
-                    Message = "An unexpected error occured"
+                    Message = "An unexpected error occured",
+                    Error = e.Message
                 });
             }
         }

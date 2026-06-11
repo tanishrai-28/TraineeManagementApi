@@ -1,9 +1,11 @@
 using TraineeManagementApi.DTO;
+using TraineeManagementApi.DTO.Pagination;
 
 namespace TraineeManagementApi.Services {
 
     public interface ITraineeService{
-        Task<List<TraineeResponse>> GetAllAsync(string search);
+        Task<List<TraineeResponse>> GetAllAsync(TraineeQueryFilter filter, CancellationToken cancellationToken = default);
+        // Task<List<TraineeResponse>> GetAllAsync(string search, TraineeQueryFilter filter, CancellationToken cancellationToken = default);
 
         Task<TraineeResponse?> GetByIdAsync(long id);
 
