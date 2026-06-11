@@ -18,10 +18,13 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
+            policy.WithOrigins("http://localhost:3000", "http://localhost:5173").AllowAnyMethod().AllowAnyHeader();
         }
     );
 });
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

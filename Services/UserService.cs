@@ -12,14 +12,16 @@ namespace TraineeManagementApi.Services;
 
 public class UserService : IUserService
 {
+    private readonly ILogger<UserService> _logger;
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly int _expiresIn;
 
-    public UserService(ApplicationDbContext context, IConfiguration configuration)
+    public UserService(ApplicationDbContext context, IConfiguration configuration, ILogger<UserService> logger)
     {
         _context = context;
         _configuration = configuration;
+        _logger = logger;
         _expiresIn = Convert.ToInt32(_configuration["JWT:ExpiresIn"]);
     }
 
@@ -29,12 +31,14 @@ public class UserService : IUserService
 
         if (user == null)
         {
+            _logger.LogInformation("Invalid user credentials entered");
             throw new UnauthorizedAccessException("Invalid Credentials!");
         }
 
         bool isValid = PasswordHasher.VerifyPassword(request.Password, user.PasswordHash);
         if (!isValid)
         {
+            _logger.LogInformation("Invalid user credentials entered");
             throw new UnauthorizedAccessException("Invalid Credentials!");
         }
 
@@ -52,9 +56,9 @@ public class UserService : IUserService
             }
         };
 
+        _logger.LogInformation("User logged in successfully.");
+
         return res;
-
-
     }
 
     private string GenerateToken(long Id, string username, string role)

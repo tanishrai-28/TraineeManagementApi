@@ -11,10 +11,13 @@ namespace TraineeManagementApi.Controllers
     public class TraineesController : ControllerBase
     {
         public readonly ITraineeService _service;
+        private readonly ILogger<TraineesController> _logger;
 
-        public TraineesController(ITraineeService service)
+
+        public TraineesController(ITraineeService service, ILogger<TraineesController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -27,6 +30,7 @@ namespace TraineeManagementApi.Controllers
             }
             catch (Exception e)
             {
+                _logger.LogError($"Failed to fetch trainees");
                 return StatusCode(500, new
                 {
                     Message = "An unexpected error occured",
@@ -51,12 +55,17 @@ namespace TraineeManagementApi.Controllers
             {
                 var trainee = await _service.GetByIdAsync(id);
 
-                if (trainee == null) return NotFound();
+                if (trainee == null)
+                {
+                    _logger.LogInformation("User record not found");
+                    return NotFound();
+                }
 
                 return Ok(trainee);
             }
             catch
             {
+                _logger.LogError($"Failed to fetch user with id {id}");
                 return StatusCode(500, new
                 {
                     Message = "An unexpected error occured"
@@ -66,7 +75,6 @@ namespace TraineeManagementApi.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-
         public async Task<IActionResult> Create(CreateTraineeRequest request)
         {
             if (request == null)
@@ -86,6 +94,7 @@ namespace TraineeManagementApi.Controllers
             }
             catch
             {
+                _logger.LogError($"Failed to create user");
                 return StatusCode(500, new
                 {
                     Message = "An unexpected error occured"
@@ -111,6 +120,7 @@ namespace TraineeManagementApi.Controllers
 
                 if (!updated)
                 {
+                    _logger.LogInformation("User record not found");
                     return NotFound();
                 }
 
@@ -118,6 +128,7 @@ namespace TraineeManagementApi.Controllers
             }
             catch
             {
+                _logger.LogError($"Failed to update user with id {id}");
                 return StatusCode(500, new
                 {
                     Message = "An unexpected error occured"
@@ -143,6 +154,7 @@ namespace TraineeManagementApi.Controllers
 
                 if (!deleted)
                 {
+                    _logger.LogError($"User to be deleted not found");
                     return NotFound();
                 }
 
@@ -150,6 +162,7 @@ namespace TraineeManagementApi.Controllers
             }
             catch
             {
+                _logger.LogError($"Failed to delete user with id {id}");
                 return StatusCode(500, new
                 {
                     Message = "An unexpected error occured"

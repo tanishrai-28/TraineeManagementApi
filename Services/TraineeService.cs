@@ -4,19 +4,22 @@ using TraineeManagementApi.Context;
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.Helpers;
+using Org.BouncyCastle.Ocsp;
 
 namespace TraineeManagementApi.Services
 {
     public class TraineeService : ITraineeService
     {
+        private readonly ILogger<TraineeService> _logger;
         private readonly ApplicationDbContext _context;
 
-        public TraineeService(ApplicationDbContext context)
+        public TraineeService(ApplicationDbContext context, ILogger<TraineeService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public async Task<List<TraineeResponse>> GetAllAsync(TraineeQueryFilter filter, CancellationToken cancellationToken = default) 
+        public async Task<List<TraineeResponse>> GetAllAsync(TraineeQueryFilter filter, CancellationToken cancellationToken = default)
         {
             var pageNumber = Math.Max(1, filter.PageNumber);
             var pageSize = Math.Clamp(filter.PageSize, 1, 50);
@@ -33,7 +36,7 @@ namespace TraineeManagementApi.Services
                 .ApplyPagination(pageNumber, pageSize)
                 .Select(t => new TraineeResponse
                 {
-                    Id=t.Id,
+                    Id = t.Id,
                     FirstName = t.FirstName,
                     LastName = t.LastName,
                     Email = t.Email,
@@ -43,33 +46,20 @@ namespace TraineeManagementApi.Services
                 .ToListAsync();
 
             return trainees;
-
-            // // try
-            // // {
-            //     var trainees = await _context.Trainees.ToListAsync();
-
-            //     if (search != "")
-            //     {
-            //         var results = trainees.Where(t => t.FirstName.Contains(search) || t.LastName.Contains(search) || t.Email.Contains(search) || t.TechStack.Contains(search)).ToList();
-            //         return results.Select(MaptoResponse).ToList();
-            //     }
-
-            //     return trainees.Select(MaptoResponse).ToList();
-            // // }
-            // // catch (Exception e)
-            // // {
-            // //     throw new Exception("Error while getting all trainees ", e);
-            // // }
-
         }
 
         public async Task<TraineeResponse> GetByIdAsync(long id)
         {
             // try
             // {
-                var trainee = await _context.Trainees.FindAsync(id);
+            var trainee = await _context.Trainees.FindAsync(id);
 
-                return trainee == null ? null : MaptoResponse(trainee);
+            if (trainee == null)
+            {
+                _logger.LogInformation($"User with {id} not found");
+            }
+
+            return trainee == null ? null : MaptoResponse(trainee);
             // }
             // catch (Exception e)
             // {
@@ -82,22 +72,24 @@ namespace TraineeManagementApi.Services
         {
             // try
             // {
-                var trainee = new Trainee()
-                {
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    Email = request.Email,
-                    TechStack = request.TechStack,
-                    Status = request.Status,
-                    CreatedDate = DateTime.UtcNow,
-                    UpdatedDate = DateTime.UtcNow
-                };
+            var trainee = new Trainee()
+            {
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email,
+                TechStack = request.TechStack,
+                Status = request.Status,
+                CreatedDate = DateTime.UtcNow,
+                UpdatedDate = DateTime.UtcNow
+            };
 
-                await _context.Trainees.AddAsync(trainee);
+            await _context.Trainees.AddAsync(trainee);
 
-                await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-                return MaptoResponse(trainee);
+            _logger.LogInformation($"User with email {request.Email} created.");
+
+            return MaptoResponse(trainee);
             // }
             // catch (Exception e)
             // {
@@ -110,20 +102,21 @@ namespace TraineeManagementApi.Services
         {
             // try
             // {
-                var trainee = await _context.Trainees.FindAsync(id);
+            var trainee = await _context.Trainees.FindAsync(id);
 
-                if (trainee == null) return false;
+            if (trainee == null) return false;
 
-                trainee.FirstName = request.FirstName;
-                trainee.LastName = request.LastName;
-                trainee.Email = request.Email;
-                trainee.TechStack = request.TechStack;
-                trainee.Status = request.Status;
-                trainee.UpdatedDate = DateTime.UtcNow;
+            trainee.FirstName = request.FirstName;
+            trainee.LastName = request.LastName;
+            trainee.Email = request.Email;
+            trainee.TechStack = request.TechStack;
+            trainee.Status = request.Status;
+            trainee.UpdatedDate = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+            _logger.LogInformation($"User id {id} updated");
 
-                return true;
+            return true;
             // }
             // catch (Exception e)
             // {
@@ -136,15 +129,16 @@ namespace TraineeManagementApi.Services
         {
             // try
             // {
-                var trainee = await _context.Trainees.FindAsync(id);
+            var trainee = await _context.Trainees.FindAsync(id);
 
-                if (trainee == null) return false;
+            if (trainee == null) return false;
 
-                _context.Trainees.Remove(trainee);
+            _context.Trainees.Remove(trainee);
 
-                await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+            _logger.LogInformation($"User id {id} deleted");
 
-                return true;
+            return true;
             // }
             // catch (Exception e)
             // {
