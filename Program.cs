@@ -35,8 +35,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseMySQL(connectionString);
 });
+
 builder.Services.AddScoped<ITraineeService, TraineeService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMentorService, MentorService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {

@@ -1,4 +1,3 @@
-using TraineeManagementApi.DTO;
 using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.DTO.TraineeDTO;
 

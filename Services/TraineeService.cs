@@ -48,7 +48,7 @@ namespace TraineeManagementApi.Services
             return trainees;
         }
 
-        public async Task<TraineeResponse> GetByIdAsync(long id)
+        public async Task<TraineeResponse?> GetByIdAsync(long id)
         {
             // try
             // {
@@ -56,7 +56,7 @@ namespace TraineeManagementApi.Services
 
             if (trainee == null)
             {
-                _logger.LogInformation($"User with {id} not found");
+                _logger.LogInformation($"Trainee with {id} not found");
             }
 
             return trainee == null ? null : MaptoResponse(trainee);
@@ -136,7 +136,7 @@ namespace TraineeManagementApi.Services
             _context.Trainees.Remove(trainee);
 
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"User id {id} deleted");
+            _logger.LogInformation($"User with id {id} deleted");
 
             return true;
             // }
