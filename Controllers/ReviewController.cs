@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TraineeManagementApi.DTO.SubmissionDTO;
+using TraineeManagementApi.DTO.ReviewDTO;
 using TraineeManagementApi.Services.Interface;
 
 namespace TraineeManagementApi.Controllers;
@@ -8,12 +8,12 @@ namespace TraineeManagementApi.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class SubmissionController : ControllerBase
+public class ReviewController : ControllerBase
 {
-    public readonly ISubmissionService _service;
-    private readonly ILogger<SubmissionController> _logger;
+    public readonly IReviewService _service;
+    private readonly ILogger<ReviewController> _logger;
 
-    public SubmissionController(ISubmissionService service, ILogger<SubmissionController> logger)
+    public ReviewController(IReviewService service, ILogger<ReviewController> logger)
     {
         _service = service;
         _logger = logger;
@@ -28,7 +28,7 @@ public class SubmissionController : ControllerBase
         }
         catch (Exception e)
         {
-            _logger.LogError($"Failed to fetch Submissions");
+            _logger.LogError($"Failed to fetch Reviews");
             return StatusCode(500, new
             {
                 Message = "An unexpected error occured",
@@ -38,7 +38,7 @@ public class SubmissionController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetSubmission(long id)
+    public async Task<IActionResult> GetReview(long id)
     {
         if (id <= 0)
         {
@@ -50,19 +50,19 @@ public class SubmissionController : ControllerBase
 
         try
         {
-            var submission = await _service.GetByIdAsync(id);
+            var review = await _service.GetByIdAsync(id);
 
-            if (submission == null)
+            if (review == null)
             {
-                _logger.LogInformation("Submission record not found");
+                _logger.LogInformation("Review record not found");
                 return NotFound();
             }
 
-            return Ok(submission);
+            return Ok(review);
         }
         catch
         {
-            _logger.LogError($"Failed to fetch submission with id {id}");
+            _logger.LogError($"Failed to fetch review with id {id}");
             return StatusCode(500, new
             {
                 Message = "An unexpected error occured"
@@ -71,7 +71,7 @@ public class SubmissionController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateSubmissionRequest request)
+    public async Task<IActionResult> Create(CreateReviewRequest request)
     {
         if (request == null)
         {
@@ -82,15 +82,15 @@ public class SubmissionController : ControllerBase
         }
         try
         {
-            var submissions = await _service.CreateAsync(request);
+            var reviews = await _service.CreateAsync(request);
 
-            return Created("/api/submissions",
-                submissions
+            return Created("/api/reviews",
+                reviews
             );
         }
         catch
         {
-            _logger.LogError($"Failed to create submission");
+            _logger.LogError($"Failed to create review");
             return StatusCode(500, new
             {
                 Message = "An unexpected error occured"
