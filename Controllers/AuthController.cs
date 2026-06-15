@@ -20,20 +20,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> LoginUser(UserLogin request)
     {
-        try
-        {
-            LoginResponse isValid = await _service.LoginUser(request);
+        LoginResponse isValid = await _service.LoginUser(request);
 
-            return Ok(isValid);
-        }
-        catch
-        {
-            _logger.LogError("Failed to login user");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
-
-        }
+        return Ok(isValid);
     }
 }

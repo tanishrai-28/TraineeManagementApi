@@ -22,19 +22,9 @@ public class ReviewController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            return Ok(await _service.GetAllAsync());
-        }
-        catch (Exception e)
-        {
-            _logger.LogError($"Failed to fetch Reviews");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured",
-                Error = e.Message
-            });
-        }
+
+        return Ok(await _service.GetAllAsync());
+
     }
 
     [HttpGet("{id}")]
@@ -48,26 +38,17 @@ public class ReviewController : ControllerBase
             });
         }
 
-        try
-        {
-            var review = await _service.GetByIdAsync(id);
 
-            if (review == null)
-            {
-                _logger.LogInformation("Review record not found");
-                return NotFound();
-            }
+        var review = await _service.GetByIdAsync(id);
 
-            return Ok(review);
-        }
-        catch
+        if (review == null)
         {
-            _logger.LogError($"Failed to fetch review with id {id}");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
+            _logger.LogInformation("Review record not found");
+            return NotFound();
         }
+
+        return Ok(review);
+
     }
 
     [HttpPost]
@@ -80,21 +61,12 @@ public class ReviewController : ControllerBase
                 Message = "Request body cannot be empty"
             });
         }
-        try
-        {
-            var reviews = await _service.CreateAsync(request);
 
-            return Created("/api/reviews",
-                reviews
-            );
-        }
-        catch
-        {
-            _logger.LogError($"Failed to create review");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
-        }
+        var reviews = await _service.CreateAsync(request);
+
+        return Created("/api/reviews",
+            reviews
+        );
+
     }
 }

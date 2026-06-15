@@ -22,19 +22,9 @@ public class TaskAssignmentController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            return Ok(await _service.GetAllAsync());
-        }
-        catch (Exception e)
-        {
-            _logger.LogError($"Failed to fetch Task Assignments");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured",
-                Error = e.Message
-            });
-        }
+
+        return Ok(await _service.GetAllAsync());
+
     }
 
     [HttpGet("{id}")]
@@ -48,26 +38,17 @@ public class TaskAssignmentController : ControllerBase
             });
         }
 
-        try
-        {
-            var taskAssignment = await _service.GetByIdAsync(id);
 
-            if (taskAssignment == null)
-            {
-                _logger.LogInformation("Task Assignment record not found");
-                return NotFound();
-            }
+        var taskAssignment = await _service.GetByIdAsync(id);
 
-            return Ok(taskAssignment);
-        }
-        catch
+        if (taskAssignment == null)
         {
-            _logger.LogError($"Failed to fetch task assignment with id {id}");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
+            _logger.LogInformation("Task Assignment record not found");
+            return NotFound();
         }
+
+        return Ok(taskAssignment);
+
     }
 
     [HttpPost]
@@ -80,22 +61,13 @@ public class TaskAssignmentController : ControllerBase
                 Message = "Request body cannot be empty"
             });
         }
-        try
-        {
-            var taskAssignments = await _service.CreateAsync(request);
 
-            return Created("/api/taskAssignments",
-                taskAssignments
-            );
-        }
-        catch
-        {
-            _logger.LogError($"Failed to create task assignment");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
-        }
+        var taskAssignments = await _service.CreateAsync(request);
+
+        return Created("/api/taskAssignments",
+            taskAssignments
+        );
+
     }
 
     [HttpPut("{id}")]
@@ -109,25 +81,15 @@ public class TaskAssignmentController : ControllerBase
             });
         }
 
-        try
-        {
-            bool updated = await _service.UpdateStatusAsync(id, request);
+        bool updated = await _service.UpdateStatusAsync(id, request);
 
-            if (!updated)
-            {
-                _logger.LogInformation("Task assignment record not found");
-                return NotFound();
-            }
-
-            return Ok();
-        }
-        catch
+        if (!updated)
         {
-            _logger.LogError($"Failed to update task assignment with id {id}");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
+            _logger.LogInformation("Task assignment record not found");
+            return NotFound();
         }
+
+        return Ok();
     }
+
 }

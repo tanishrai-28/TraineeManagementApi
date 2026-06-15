@@ -22,19 +22,9 @@ public class MentorController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            return Ok(await _service.GetAllAsync());
-        }
-        catch (Exception e)
-        {
-            _logger.LogError($"Failed to fetch mentors");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured",
-                Error = e.Message
-            });
-        }
+
+        return Ok(await _service.GetAllAsync());
+
     }
 
     [HttpGet("{id}")]
@@ -49,26 +39,17 @@ public class MentorController : ControllerBase
             });
         }
 
-        try
-        {
-            var mentor = await _service.GetByIdAsync(id);
 
-            if (mentor == null)
-            {
-                _logger.LogInformation("Mentor record not found");
-                return NotFound();
-            }
+        var mentor = await _service.GetByIdAsync(id);
 
-            return Ok(mentor);
-        }
-        catch
+        if (mentor == null)
         {
-            _logger.LogError($"Failed to fetch mentor with id {id}");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
+            _logger.LogInformation("Mentor record not found");
+            return NotFound();
         }
+
+        return Ok(mentor);
+
     }
 
     [HttpPost]
@@ -82,22 +63,13 @@ public class MentorController : ControllerBase
                 Message = "Request body cannot be empty"
             });
         }
-        try
-        {
-            var mentor = await _service.CreateAsync(request);
 
-            return Created("/api/mentors",
-                mentor
-            );
-        }
-        catch
-        {
-            _logger.LogError($"Failed to create mentor");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
-        }
+        var mentor = await _service.CreateAsync(request);
+
+        return Created("/api/mentors",
+            mentor
+        );
+
     }
 
     [HttpPut("{id}")]
@@ -112,26 +84,16 @@ public class MentorController : ControllerBase
             });
         }
 
-        try
-        {
-            bool updated = await _service.UpdateAsync(id, request);
+        bool updated = await _service.UpdateAsync(id, request);
 
-            if (!updated)
-            {
-                _logger.LogInformation("Mentor record not found");
-                return NotFound();
-            }
-
-            return Ok();
-        }
-        catch
+        if (!updated)
         {
-            _logger.LogError($"Failed to update mentor with id {id}");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
+            _logger.LogInformation("Mentor record not found");
+            return NotFound();
         }
+
+        return Ok();
+
     }
 
     [HttpDelete("{id}")]
@@ -146,26 +108,17 @@ public class MentorController : ControllerBase
             });
         }
 
-        try
-        {
-            bool deleted = await _service.DeleteAsync(id);
 
-            if (!deleted)
-            {
-                _logger.LogError($"Mentor to be deleted not found");
-                return NotFound();
-            }
+        bool deleted = await _service.DeleteAsync(id);
 
-            return NoContent();
-        }
-        catch
+        if (!deleted)
         {
-            _logger.LogError($"Failed to delete mentor with id {id}");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
+            _logger.LogError($"Mentor to be deleted not found");
+            return NotFound();
         }
+
+        return NoContent();
+
     }
 
 }

@@ -24,19 +24,9 @@ namespace TraineeManagementApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetAll([FromQuery] TraineeQueryFilter filter, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                return Ok(await _service.GetAllAsync(filter, cancellationToken));
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Failed to fetch trainees");
-                return StatusCode(500, new
-                {
-                    Message = "An unexpected error occured",
-                    Error = e.Message
-                });
-            }
+
+            return Ok(await _service.GetAllAsync(filter, cancellationToken));
+
         }
 
         [HttpGet("{id}")]
@@ -51,26 +41,17 @@ namespace TraineeManagementApi.Controllers
                 });
             }
 
-            try
-            {
-                var trainee = await _service.GetByIdAsync(id);
 
-                if (trainee == null)
-                {
-                    _logger.LogInformation("User record not found");
-                    return NotFound();
-                }
+            var trainee = await _service.GetByIdAsync(id);
 
-                return Ok(trainee);
-            }
-            catch
+            if (trainee == null)
             {
-                _logger.LogError($"Failed to fetch user with id {id}");
-                return StatusCode(500, new
-                {
-                    Message = "An unexpected error occured"
-                });
+                _logger.LogInformation("User record not found");
+                return NotFound();
             }
+
+            return Ok(trainee);
+
         }
 
         [HttpPost]
@@ -84,23 +65,15 @@ namespace TraineeManagementApi.Controllers
                     Message = "Request body cannot be empty"
                 });
             }
-            try
-            {
-                var trainee = await _service.CreateAsync(request);
 
-                return Created("/api/trainees",
-                    trainee
-                );
-            }
-            catch
-            {
-                _logger.LogError($"Failed to create user");
-                return StatusCode(500, new
-                {
-                    Message = "An unexpected error occured"
-                });
-            }
+            var trainee = await _service.CreateAsync(request);
+
+            return Created("/api/trainees",
+                trainee
+            );
         }
+
+
 
         [HttpPut("{id}")]
         [Authorize]
@@ -114,26 +87,17 @@ namespace TraineeManagementApi.Controllers
                 });
             }
 
-            try
-            {
-                bool updated = await _service.UpdateAsync(id, request);
 
-                if (!updated)
-                {
-                    _logger.LogInformation("User record not found");
-                    return NotFound();
-                }
+            bool updated = await _service.UpdateAsync(id, request);
 
-                return Ok();
-            }
-            catch
+            if (!updated)
             {
-                _logger.LogError($"Failed to update user with id {id}");
-                return StatusCode(500, new
-                {
-                    Message = "An unexpected error occured"
-                });
+                _logger.LogInformation("User record not found");
+                return NotFound();
             }
+
+            return Ok();
+
         }
 
         [HttpDelete("{id}")]
@@ -148,26 +112,17 @@ namespace TraineeManagementApi.Controllers
                 });
             }
 
-            try
-            {
-                bool deleted = await _service.DeleteAsync(id);
 
-                if (!deleted)
-                {
-                    _logger.LogError($"User to be deleted not found");
-                    return NotFound();
-                }
+            bool deleted = await _service.DeleteAsync(id);
 
-                return NoContent();
-            }
-            catch
+            if (!deleted)
             {
-                _logger.LogError($"Failed to delete user with id {id}");
-                return StatusCode(500, new
-                {
-                    Message = "An unexpected error occured"
-                });
+                _logger.LogError($"User to be deleted not found");
+                return NotFound();
             }
+
+            return NoContent();
+
         }
 
     }

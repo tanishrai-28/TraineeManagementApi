@@ -22,19 +22,9 @@ public class SubmissionController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            return Ok(await _service.GetAllAsync());
-        }
-        catch (Exception e)
-        {
-            _logger.LogError($"Failed to fetch Submissions");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured",
-                Error = e.Message
-            });
-        }
+
+        return Ok(await _service.GetAllAsync());
+
     }
 
     [HttpGet("{id}")]
@@ -48,26 +38,17 @@ public class SubmissionController : ControllerBase
             });
         }
 
-        try
-        {
-            var submission = await _service.GetByIdAsync(id);
 
-            if (submission == null)
-            {
-                _logger.LogInformation("Submission record not found");
-                return NotFound();
-            }
+        var submission = await _service.GetByIdAsync(id);
 
-            return Ok(submission);
-        }
-        catch
+        if (submission == null)
         {
-            _logger.LogError($"Failed to fetch submission with id {id}");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
+            _logger.LogInformation("Submission record not found");
+            return NotFound();
         }
+
+        return Ok(submission);
+
     }
 
     [HttpPost]
@@ -80,21 +61,13 @@ public class SubmissionController : ControllerBase
                 Message = "Request body cannot be empty"
             });
         }
-        try
-        {
-            var submissions = await _service.CreateAsync(request);
 
-            return Created("/api/submissions",
-                submissions
-            );
-        }
-        catch
-        {
-            _logger.LogError($"Failed to create submission");
-            return StatusCode(500, new
-            {
-                Message = "An unexpected error occured"
-            });
-        }
+        var submissions = await _service.CreateAsync(request);
+
+        return Created("/api/submissions",
+            submissions
+        );
+
+
     }
 }
