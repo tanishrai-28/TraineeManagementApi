@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Services;
 using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Context;
-
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -41,6 +40,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMentorService, MentorService>();
 builder.Services.AddScoped<ILearningTaskService, LearningTaskService>();
 builder.Services.AddScoped<ITaskAssignmentService, TaskAssignmentService>();
+builder.Services.AddScoped<ISubmissionService, SubmissionService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
