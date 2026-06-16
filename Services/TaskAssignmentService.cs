@@ -32,7 +32,7 @@ public class TaskAssignmentService : ITaskAssignmentService
         }
 
         var learningTaskExists = await _context.LearningTasks.AnyAsync(x => x.Id == request.LearningTaskId);
-        if (!traineeExists)
+        if (!learningTaskExists)
         {
             throw new ArgumentException("Learning Task does not exists");
         }
