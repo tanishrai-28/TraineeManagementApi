@@ -1,21 +1,24 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TraineeManagementApi.DTO.SubmissionDTO;
+using TraineeManagementApi.Services.FileStorage;
 using TraineeManagementApi.Services.Interface;
 
 namespace TraineeManagementApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+// [Authorize]
 public class SubmissionController : ControllerBase
 {
     public readonly ISubmissionService _service;
+    public readonly ISubmissionFileService _submissionFileService;
     private readonly ILogger<SubmissionController> _logger;
 
-    public SubmissionController(ISubmissionService service, ILogger<SubmissionController> logger)
+    public SubmissionController(ISubmissionService service, ISubmissionFileService submissionFileService, ILogger<SubmissionController> logger)
     {
         _service = service;
+        _submissionFileService = submissionFileService;
         _logger = logger;
     }
 
@@ -48,7 +51,6 @@ public class SubmissionController : ControllerBase
         }
 
         return Ok(submission);
-
     }
 
     [HttpPost]
@@ -67,7 +69,39 @@ public class SubmissionController : ControllerBase
         return Created("/api/submissions",
             submissions
         );
+    }
 
+    [HttpPost("{submissionId}/files")]
+    public async Task<IActionResult> UploadFile (long submissionId, IFormFile file, CancellationToken cancellationToken)
+    {
+        var uploadedBy = User.Identity?.Name ?? "System";
 
+        var response = await _submissionFileService.UploadAsync(submissionId, file, uploadedBy, cancellationToken);
+
+        return CreatedAtAction(
+            nameof(GetSubmission),
+            new {id = response.Id},
+            response
+        );
+    }
+
+    [HttpGet("files/{id}/download")]
+    public async Task<IActionResult> DownloadFile(Guid id, CancellationToken cancellationToken)
+    {
+        var file = await _submissionFileService.DownloadAsync(id, cancellationToken);
+
+        return File(
+            file.Stream,
+            file.ContentType,
+            file.FileName
+        );
+    }
+
+    [HttpDelete("files/{id}")]
+    public async Task<IActionResult> DeleteFile(Guid id, CancellationToken cancellationToken)
+    {
+        await _submissionFileService.DeleteAsync(id, cancellationToken);
+
+        return NoContent();
     }
 }
