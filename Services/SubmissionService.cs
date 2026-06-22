@@ -3,6 +3,7 @@ using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.SubmissionDTO;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
+using TraineeManagementApi.Services.Redis;
 
 namespace TraineeManagementApi.Services;
 
@@ -10,10 +11,12 @@ public class SubmissionService : ISubmissionService
 {
     private readonly ILogger<SubmissionService> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly ICacheService _cache;
 
-    public SubmissionService(ApplicationDbContext context, ILogger<SubmissionService> logger)
+    public SubmissionService(ApplicationDbContext context, ICacheService cache, ILogger<SubmissionService> logger)
     {
         _context = context;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -107,6 +110,17 @@ public class SubmissionService : ISubmissionService
 
     public async Task<SubmissionResponse?> GetByIdAsync(long id)
     {
+        var cachedKey = $"submission:{id}";
+        SubmissionResponse? cachedData = await _cache.GetAsync<SubmissionResponse>(cachedKey);
+
+        if (cachedData != null)
+        {
+            _logger.LogInformation("Hit for submission");
+            return cachedData;
+        }
+
+        _logger.LogInformation("Miss for submission");
+
         var submission = await _context.Submissions.FirstOrDefaultAsync(x => x.Id == id);
 
         if (submission == null)
@@ -115,7 +129,7 @@ public class SubmissionService : ISubmissionService
             return null;
         }
 
-        return new SubmissionResponse
+        var response = new SubmissionResponse
         {
             Id = submission.Id,
             TaskAssignmentId = submission.TaskAssignmentId,
@@ -124,5 +138,9 @@ public class SubmissionService : ISubmissionService
             SubmittedDate = submission.SubmittedDate,
             Status = submission.Status
         };
+
+        await _cache.SetAsync(cachedKey, response);
+
+        return response;
     }
 }

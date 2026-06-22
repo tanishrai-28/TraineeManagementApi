@@ -7,7 +7,7 @@ namespace TraineeManagementApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+// [Authorize]
 public class TaskAssignmentController : ControllerBase
 {
     public readonly ITaskAssignmentService _service;

@@ -48,6 +48,7 @@ builder.Services.AddScoped<ISubmissionFileService, SubmissionFileService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
 builder.Services.AddScoped<IRedisService, RedisService>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {

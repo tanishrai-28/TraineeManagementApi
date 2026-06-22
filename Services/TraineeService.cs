@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.Helpers;
 using TraineeManagementApi.Services.Interface;
+using TraineeManagementApi.Services.Redis;
 
 namespace TraineeManagementApi.Services
 {
@@ -12,10 +13,12 @@ namespace TraineeManagementApi.Services
     {
         private readonly ILogger<TraineeService> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly ICacheService _cache;
 
-        public TraineeService(ApplicationDbContext context, ILogger<TraineeService> logger)
+        public TraineeService(ApplicationDbContext context, ICacheService cache, ILogger<TraineeService> logger)
         {
             _context = context;
+            _cache = cache;
             _logger = logger;
         }
 
@@ -50,8 +53,19 @@ namespace TraineeManagementApi.Services
 
         public async Task<TraineeResponse?> GetByIdAsync(long id)
         {
-            // try
-            // {
+            var cachedKey = $"trainee:{id}";
+
+            TraineeResponse? cachedData = await _cache.GetAsync<TraineeResponse>(cachedKey);
+
+            if (cachedData != null)
+            {
+                _logger.LogInformation("Hit for trainee");
+                return cachedData;
+            }
+
+            _logger.LogInformation("Miss for trainee");
+            
+
             var trainee = await _context.Trainees.FindAsync(id);
 
             if (trainee == null)
@@ -59,13 +73,11 @@ namespace TraineeManagementApi.Services
                 _logger.LogInformation($"Trainee with {id} not found");
             }
 
-            return trainee == null ? null : MaptoResponse(trainee);
-            // }
-            // catch (Exception e)
-            // {
-            //     throw new Exception($"Failed to retrieve trianee with id {id} ", e);
-            // }
+            var response = MaptoResponse(trainee!);
 
+            await _cache.SetAsync(cachedKey, response);
+
+            return response;
         }
 
         public async Task<TraineeResponse> CreateAsync(CreateTraineeRequest request)
@@ -100,8 +112,7 @@ namespace TraineeManagementApi.Services
 
         public async Task<bool> UpdateAsync(long id, UpdateTraineeRequest request)
         {
-            // try
-            // {
+            var cachedKey = $"trainee:{id}";
             var trainee = await _context.Trainees.FindAsync(id);
 
             if (trainee == null) return false;
@@ -116,19 +127,14 @@ namespace TraineeManagementApi.Services
             await _context.SaveChangesAsync();
             _logger.LogInformation($"User id {id} updated");
 
-            return true;
-            // }
-            // catch (Exception e)
-            // {
+            await _cache.RemoveAsync(cachedKey);
 
-            //     throw new Exception($"Error while updating trainee with id {id} -> ", e);
-            // }
+            return true;
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            // try
-            // {
+            var cachedKey = $"trainee:{id}";
             var trainee = await _context.Trainees.FindAsync(id);
 
             if (trainee == null) return false;
@@ -138,13 +144,9 @@ namespace TraineeManagementApi.Services
             await _context.SaveChangesAsync();
             _logger.LogInformation($"User with id {id} deleted");
 
-            return true;
-            // }
-            // catch (Exception e)
-            // {
+            await _cache.RemoveAsync(cachedKey);
 
-            //     throw new Exception($"Failed to delete trainee with id {id} -> ", e);
-            // }
+            return true;
         }
 
         private TraineeResponse MaptoResponse(Trainee trainee)

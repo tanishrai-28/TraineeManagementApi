@@ -19,7 +19,7 @@ public class MentorController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    // [Authorize]
     public async Task<IActionResult> GetAll()
     {
 
@@ -28,7 +28,7 @@ public class MentorController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize]
+    // [Authorize]
     public async Task<IActionResult> GetMentor(long id)
     {
         if (id <= 0)
@@ -53,7 +53,7 @@ public class MentorController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    // [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(CreateMentorRequest request)
     {
         if (request == null)
@@ -73,7 +73,7 @@ public class MentorController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize]
+    // [Authorize]
     public async Task<IActionResult> Update(long id, UpdateMentorRequest request)
     {
         if (request == null)
@@ -97,7 +97,7 @@ public class MentorController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
+    // [Authorize]
     public async Task<IActionResult> Delete(long id)
     {
         if (id <= 0)

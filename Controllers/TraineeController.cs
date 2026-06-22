@@ -21,7 +21,7 @@ namespace TraineeManagementApi.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> GetAll([FromQuery] TraineeQueryFilter filter, CancellationToken cancellationToken = default)
         {
 
@@ -30,7 +30,7 @@ namespace TraineeManagementApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> GetTrainee(long id)
         {
             if (id <= 0)
@@ -55,7 +55,7 @@ namespace TraineeManagementApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateTraineeRequest request)
         {
             if (request == null)
@@ -76,7 +76,7 @@ namespace TraineeManagementApi.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> Update(long id, UpdateTraineeRequest request)
         {
             if (request == null)
@@ -101,7 +101,7 @@ namespace TraineeManagementApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> Delete(long id)
         {
             if (id <= 0)

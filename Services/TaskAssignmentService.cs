@@ -3,6 +3,7 @@ using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.TaskAssignmentDTO;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
+using TraineeManagementApi.Services.Redis;
 
 namespace TraineeManagementApi.Services;
 
@@ -10,11 +11,13 @@ public class TaskAssignmentService : ITaskAssignmentService
 {
     private readonly ILogger<TaskAssignmentService> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly ICacheService _cache;
 
-    public TaskAssignmentService(ApplicationDbContext context, ILogger<TaskAssignmentService> logger)
+    public TaskAssignmentService(ApplicationDbContext context, ICacheService cache, ILogger<TaskAssignmentService> logger)
     {
         _context = context;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<TaskAssignmentResponse> CreateAsync(CreateTaskAssignmentRequest request)
@@ -37,7 +40,7 @@ public class TaskAssignmentService : ITaskAssignmentService
             throw new ArgumentException("Learning Task does not exists");
         }
 
-        if(request.DueDate.Date < request.AssignedDate.Date)
+        if (request.DueDate.Date < request.AssignedDate.Date)
         {
             throw new ArgumentException("Due date cannot be before assigned date");
         }
@@ -93,6 +96,17 @@ public class TaskAssignmentService : ITaskAssignmentService
 
     public async Task<TaskAssignmentResponse?> GetByIdAsync(long id)
     {
+        var cachedKey = $"task-assignment:{id}";
+        TaskAssignmentResponse? cachedData = await _cache.GetAsync<TaskAssignmentResponse>(cachedKey);
+
+        if (cachedData != null)
+        {
+            _logger.LogInformation("Hit for task assignment");
+            return cachedData;
+        }
+
+        _logger.LogInformation("Miss for task assignment");
+
         var taskAssignment = await _context.TaskAssignments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (taskAssignment == null)
@@ -101,7 +115,7 @@ public class TaskAssignmentService : ITaskAssignmentService
             return null;
         }
 
-        return new TaskAssignmentResponse
+        var response = new TaskAssignmentResponse
         {
             Id = taskAssignment.Id,
             TraineeId = taskAssignment.TraineeId,
@@ -112,10 +126,16 @@ public class TaskAssignmentService : ITaskAssignmentService
             Status = taskAssignment.Status,
             Remarks = taskAssignment.Remarks
         };
+
+        await _cache.SetAsync(cachedKey, response);
+
+        return response;
     }
 
     public async Task<bool> UpdateStatusAsync(long id, UpdateTaskAssignmentStatusRequest request)
     {
+        var cachedKey = $"task-assignment:{id}";
+        
         var taskAssignment = await _context.TaskAssignments.FirstOrDefaultAsync(x => x.Id == id);
 
         if (taskAssignment == null) return false;
@@ -125,6 +145,8 @@ public class TaskAssignmentService : ITaskAssignmentService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation($"Task Assignment with id {id} updated");
+
+        await _cache.RemoveAsync(cachedKey);
 
         return true;
     }

@@ -3,6 +3,7 @@ using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.MentorDTO;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
+using TraineeManagementApi.Services.Redis;
 
 namespace TraineeManagementApi.Services;
 
@@ -10,10 +11,12 @@ public class MentorService : IMentorService
 {
     private readonly ILogger<MentorService> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly ICacheService _cache;
 
-    public MentorService(ApplicationDbContext context, ILogger<MentorService> logger)
+    public MentorService(ApplicationDbContext context, ICacheService cache, ILogger<MentorService> logger)
     {
         _context = context;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -26,6 +29,17 @@ public class MentorService : IMentorService
 
     public async Task<MentorResponse?> GetByIdAsync(long id)
     {
+        var cachedKey = $"mentor:{id}";
+        MentorResponse? cachedData = await _cache.GetAsync<MentorResponse>(cachedKey);
+
+        if (cachedData != null)
+        {
+            _logger.LogInformation("Hit for mentor");
+            return cachedData;
+        }
+
+        _logger.LogInformation("Miss for mentor");
+
         var mentor = await _context.Mentors.FindAsync(id);
 
         if (mentor == null)
@@ -33,7 +47,11 @@ public class MentorService : IMentorService
             _logger.LogInformation($"Mentor with {id} not found");
         }
 
-        return mentor == null ? null : MaptoResponse(mentor);
+        var response = MaptoResponse(mentor!);
+
+        await _cache.SetAsync(cachedKey, response);
+
+        return response;
     }
 
     public async Task<MentorResponse> CreateAsync(CreateMentorRequest request)
@@ -60,6 +78,7 @@ public class MentorService : IMentorService
 
     public async Task<bool> UpdateAsync(long id, UpdateMentorRequest request)
     {
+        var cachedKey = $"mentor:{id}";
         var mentor = await _context.Mentors.FindAsync(id);
 
         if (mentor == null) return false;
@@ -74,11 +93,14 @@ public class MentorService : IMentorService
         await _context.SaveChangesAsync();
         _logger.LogInformation($"Mentor id {id} updated");
 
+        await _cache.RemoveAsync(cachedKey);
+
         return true;
     }
 
     public async Task<bool> DeleteAsync(long id)
     {
+        var cachedKey = $"mentor:{id}";
         var mentor = await _context.Mentors.FindAsync(id);
 
         if (mentor == null) return false;
@@ -87,6 +109,8 @@ public class MentorService : IMentorService
 
         await _context.SaveChangesAsync();
         _logger.LogInformation($"Mentor with id {id} deleted");
+
+        await _cache.RemoveAsync(cachedKey);
 
         return true;
     }
