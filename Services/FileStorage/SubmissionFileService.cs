@@ -1,8 +1,11 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using TraineeManagementApi.Configurations;
 using TraineeManagementApi.Context;
+using TraineeManagementApi.DTO.SubmissionDTO;
 using TraineeManagementApi.DTO.SubmissionFileDTO;
 using TraineeManagementApi.Models;
+using TraineeManagementApi.Services.RabbitMq;
 
 namespace TraineeManagementApi.Services.FileStorage;
 
@@ -11,11 +14,13 @@ public class SubmissionFileService : ISubmissionFileService
     private readonly ILogger<SubmissionFileService> _logger;
     private readonly ApplicationDbContext _context;
     private readonly IFileStorageService _storage;
+    private readonly IRabbitMqPublisher _rabbitMqPublisher;
 
-    public SubmissionFileService(ApplicationDbContext context, IFileStorageService storage, ILogger<SubmissionFileService> logger)
+    public SubmissionFileService(ApplicationDbContext context, IFileStorageService storage, IRabbitMqPublisher rabbitMqPublisher, ILogger<SubmissionFileService> logger)
     {
         _context = context;
         _storage = storage;
+        _rabbitMqPublisher = rabbitMqPublisher;
         _logger = logger;
     }
 
@@ -64,6 +69,17 @@ public class SubmissionFileService : ISubmissionFileService
 
         _context.SubmissionFiles.Add(entity);
         await _context.SaveChangesAsync();
+
+        SubmissionProcessingRequested submissionProcessingRequested = new()
+        {
+            MessageId = Guid.NewGuid(),
+            CorrelationId = Guid.NewGuid(),
+            SubmissionId = submissionId,
+            FileId = entity.Id,
+            RequestedAt = DateTime.UtcNow
+        };
+
+        await _rabbitMqPublisher.PublishAsync(submissionProcessingRequested, RabbitMQQueues.SubmissionProcessingQueue);
 
         return new SubmissionFileResponse
         {

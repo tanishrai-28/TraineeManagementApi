@@ -1,15 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using TraineeManagementApi.Configurations;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.Services;
 using TraineeManagementApi.Services.FileStorage;
 using TraineeManagementApi.Services.Interface;
+using TraineeManagementApi.Services.RabbitMq;
 using TraineeManagementApi.Services.Redis;
 
 namespace TraineeManagementApi.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddStaticServices(this IServiceCollection services)
+    public static IServiceCollection AddStaticServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<ITraineeService, TraineeService>();
         services.AddScoped<IUserService, UserService>();
@@ -24,6 +26,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRedisService, RedisService>();
 
         services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+        services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
 
         return services;
     }

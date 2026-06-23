@@ -9,7 +9,26 @@ services:
       - redis-data:/data
     command: redis-server --appendonly yes
     restart: unless-stopped
+
+  rabbitmq:
+    image: docker-registry-002.zeuslearning.com/zeuslearning/rabbitmq:3.13.7-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-lib:/var/lib/rabbitmq/
+      - rabbitmq-log:/var/log/rabbitmq
+    restart: unless-stopped
+    
   
 volumes:
   redis-data:
+    driver: local
+  rabbitmq-lib:
+    driver: local
+  rabbitmq-log:
     driver: local
