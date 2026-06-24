@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ISubmissionFileService, SubmissionFileService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IProcessingJobService, ProcessingJobService>();
 
         services.AddScoped<IRedisService, RedisService>();
 

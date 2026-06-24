@@ -48,9 +48,6 @@ public class SubmissionFileService : ISubmissionFileService
             throw new Exception("Extension not allowed");
         }
 
-        using var sha = SHA256.Create();
-
-        var hash = Convert.ToHexString(sha.ComputeHash(file.OpenReadStream()));
 
         var storageName = await _storage.SaveAsync(file.OpenReadStream(), extension, cancellationToken);
 
@@ -61,7 +58,7 @@ public class SubmissionFileService : ISubmissionFileService
             GeneratedFileName = storageName,
             ContentType = file.ContentType,
             Size = file.Length,
-            Checksum = hash,
+            Checksum = "",
             UploadedByUser = uploadedBy,
             CreatedDate = DateTime.UtcNow,
             UpdatedDate = DateTime.UtcNow
@@ -70,16 +67,33 @@ public class SubmissionFileService : ISubmissionFileService
         _context.SubmissionFiles.Add(entity);
         await _context.SaveChangesAsync();
 
-        SubmissionProcessingRequested submissionProcessingRequested = new()
+        var messageId = Guid.NewGuid();
+        var correlationId = Guid.NewGuid();
+
+        var job = new ProcessingJob
         {
-            MessageId = Guid.NewGuid(),
-            CorrelationId = Guid.NewGuid(),
+            MessageId = messageId,
+            CorelationId = correlationId,
+            SubmissionId = submissionId,
+            SubmissionFileId = entity.Id,
+            Status = "Queued",
+            Attempts = 0,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        _context.ProcessingJobs.Add(job);
+        await _context.SaveChangesAsync();
+
+        var message = new SubmissionProcessingRequested
+        {
+            MessageId = messageId,
+            CorrelationId = correlationId,
             SubmissionId = submissionId,
             FileId = entity.Id,
             RequestedAt = DateTime.UtcNow
         };
 
-        await _rabbitMqPublisher.PublishAsync(submissionProcessingRequested, RabbitMQQueues.SubmissionProcessingQueue);
+        await _rabbitMqPublisher.PublishAsync(message, RabbitMQQueues.SubmissionProcessingQueue);
 
         return new SubmissionFileResponse
         {

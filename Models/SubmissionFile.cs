@@ -8,7 +8,7 @@ public class SubmissionFile
     public required string GeneratedFileName { get; set; }
     public required string ContentType { get; set; }
     public required long Size { get; set; }
-    public required string Checksum { get; set; }
+    public string? Checksum { get; set; }
     public required string UploadedByUser { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
