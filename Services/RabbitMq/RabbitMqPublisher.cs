@@ -46,7 +46,7 @@ public class RabbitMqPublisher : IRabbitMqPublisher
         }
         catch (Exception)
         {
-            _logger.LogInformation("RabbitMQ offline");
+            _logger.LogCritical("RabbitMQ offline");
         }
 
     }

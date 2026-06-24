@@ -6,6 +6,7 @@ using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.Helpers;
 using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Services.Redis;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace TraineeManagementApi.Services
 {
@@ -48,6 +49,8 @@ namespace TraineeManagementApi.Services
                 })
                 .ToListAsync();
 
+            _logger.LogInformation("Fetched all trainees");
+
             return trainees;
         }
 
@@ -64,18 +67,19 @@ namespace TraineeManagementApi.Services
             }
 
             _logger.LogInformation("Miss for trainee");
-            
+
 
             var trainee = await _context.Trainees.FindAsync(id);
-
             if (trainee == null)
             {
-                _logger.LogInformation($"Trainee with {id} not found");
+                _logger.LogWarning($"Trainee with {id} not found");
+                return null;
             }
 
-            var response = MaptoResponse(trainee!);
+            var response = MaptoResponse(trainee);
 
-            await _cache.SetAsync(cachedKey, response);
+            await _cache.SetAsync(cachedKey, response, 2);
+            _logger.LogInformation($"Fetched trainee with id: {id} and saved to cache");
 
             return response;
         }
@@ -115,7 +119,11 @@ namespace TraineeManagementApi.Services
             var cachedKey = $"trainee:{id}";
             var trainee = await _context.Trainees.FindAsync(id);
 
-            if (trainee == null) return false;
+            if (trainee == null)
+            {
+                _logger.LogWarning("Trainee record not found");
+                return false;
+            }
 
             trainee.FirstName = request.FirstName;
             trainee.LastName = request.LastName;
@@ -125,9 +133,9 @@ namespace TraineeManagementApi.Services
             trainee.UpdatedDate = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"User id {id} updated");
 
             await _cache.RemoveAsync(cachedKey);
+            _logger.LogInformation($"Trainee with id: {id} updated and removed from cache");
 
             return true;
         }
@@ -137,14 +145,16 @@ namespace TraineeManagementApi.Services
             var cachedKey = $"trainee:{id}";
             var trainee = await _context.Trainees.FindAsync(id);
 
-            if (trainee == null) return false;
+            if (trainee == null) {
+                _logger.LogWarning($"Trainee to be deleted not found");
+                return false;
+            }
 
             _context.Trainees.Remove(trainee);
-
             await _context.SaveChangesAsync();
-            _logger.LogInformation($"User with id {id} deleted");
 
             await _cache.RemoveAsync(cachedKey);
+            _logger.LogInformation($"Trainee with id {id} deleted and removed from cache");
 
             return true;
         }

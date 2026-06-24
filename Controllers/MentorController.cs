@@ -10,21 +10,17 @@ namespace TraineeManagementApi.Controllers;
 public class MentorController : ControllerBase
 {
     public readonly IMentorService _service;
-    private readonly ILogger<MentorController> _logger;
 
-    public MentorController(IMentorService service, ILogger<MentorController> logger)
+    public MentorController(IMentorService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpGet]
     // [Authorize]
     public async Task<IActionResult> GetAll()
     {
-
         return Ok(await _service.GetAllAsync());
-
     }
 
     [HttpGet("{id}")]
@@ -39,17 +35,14 @@ public class MentorController : ControllerBase
             });
         }
 
-
         var mentor = await _service.GetByIdAsync(id);
 
         if (mentor == null)
         {
-            _logger.LogInformation("Mentor record not found");
             return NotFound();
         }
 
         return Ok(mentor);
-
     }
 
     [HttpPost]
@@ -88,7 +81,6 @@ public class MentorController : ControllerBase
 
         if (!updated)
         {
-            _logger.LogInformation("Mentor record not found");
             return NotFound();
         }
 
@@ -108,17 +100,14 @@ public class MentorController : ControllerBase
             });
         }
 
-
         bool deleted = await _service.DeleteAsync(id);
 
         if (!deleted)
         {
-            _logger.LogError($"Mentor to be deleted not found");
             return NotFound();
         }
 
         return NoContent();
-
     }
 
 }

@@ -25,23 +25,27 @@ public class TaskAssignmentService : ITaskAssignmentService
         var traineeExists = await _context.Trainees.AnyAsync(x => x.Id == request.TraineeId);
         if (!traineeExists)
         {
+            _logger.LogWarning($"Trainee for required task assignment does not exist");
             throw new ArgumentException("Trainee does not exists");
         }
 
         var mentorExists = await _context.Mentors.AnyAsync(x => x.Id == request.MentorId);
         if (!mentorExists)
         {
+            _logger.LogWarning($"Mentor for required task assignment does not exist");
             throw new ArgumentException("Mentor does not exists");
         }
 
         var learningTaskExists = await _context.LearningTasks.AnyAsync(x => x.Id == request.LearningTaskId);
         if (!learningTaskExists)
         {
+            _logger.LogWarning($"Learning task for required task assignment does not exist");
             throw new ArgumentException("Learning Task does not exists");
         }
 
         if (request.DueDate.Date < request.AssignedDate.Date)
         {
+            _logger.LogWarning($"Due date cannot be before assigned date");
             throw new ArgumentException("Due date cannot be before assigned date");
         }
 
@@ -91,6 +95,8 @@ public class TaskAssignmentService : ITaskAssignmentService
             Remarks = x.Remarks
         }).ToListAsync();
 
+        _logger.LogInformation("Fetched all task assignment");
+
         return taskAssignments;
     }
 
@@ -111,7 +117,7 @@ public class TaskAssignmentService : ITaskAssignmentService
 
         if (taskAssignment == null)
         {
-            _logger.LogInformation($"Task Assignment with {id} not found");
+            _logger.LogWarning($"Task Assignment with {id} not found");
             return null;
         }
 
@@ -127,7 +133,8 @@ public class TaskAssignmentService : ITaskAssignmentService
             Remarks = taskAssignment.Remarks
         };
 
-        await _cache.SetAsync(cachedKey, response);
+        await _cache.SetAsync(cachedKey, response, 2);
+        _logger.LogInformation($"Fetched task assignment with id: {id} and saved to cache");
 
         return response;
     }
@@ -138,15 +145,19 @@ public class TaskAssignmentService : ITaskAssignmentService
         
         var taskAssignment = await _context.TaskAssignments.FirstOrDefaultAsync(x => x.Id == id);
 
-        if (taskAssignment == null) return false;
+        if (taskAssignment == null)
+        {
+            _logger.LogWarning("Task assignment record not found");
+            return false;
+        }
 
-        taskAssignment.Status = request.Status;
+        taskAssignment.Status = request.Status!;
         taskAssignment.UpdatedDate = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation($"Task Assignment with id {id} updated");
 
         await _cache.RemoveAsync(cachedKey);
+        _logger.LogInformation($"Task Assignment with id {id} updated and removed from cache");
 
         return true;
     }

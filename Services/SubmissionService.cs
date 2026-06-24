@@ -25,6 +25,7 @@ public class SubmissionService : ISubmissionService
         var taskAssignmentExists = await _context.TaskAssignments.AnyAsync(x => x.Id == request.TaskAssignmentId);
         if (!taskAssignmentExists)
         {
+            _logger.LogWarning($"Submission for required task assignment does not exist");
             throw new ArgumentException("Task assignment does not exists");
         }
 
@@ -105,6 +106,8 @@ public class SubmissionService : ISubmissionService
             Status = x.Status
         }).ToListAsync();
 
+        _logger.LogInformation("Fetched all submissions");
+
         return submissions;
     }
 
@@ -125,7 +128,7 @@ public class SubmissionService : ISubmissionService
 
         if (submission == null)
         {
-            _logger.LogInformation($"Submission with {id} not found");
+            _logger.LogWarning($"Submission with {id} not found");
             return null;
         }
 
@@ -139,7 +142,8 @@ public class SubmissionService : ISubmissionService
             Status = submission.Status
         };
 
-        await _cache.SetAsync(cachedKey, response);
+        await _cache.SetAsync(cachedKey, response, 2);
+        _logger.LogInformation($"Fetched submission with id: {id} and saved to cache");
 
         return response;
     }

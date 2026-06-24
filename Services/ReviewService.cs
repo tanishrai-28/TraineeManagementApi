@@ -22,12 +22,14 @@ public class ReviewService : IReviewService
         var submission = await _context.Submissions.FirstOrDefaultAsync(x => x.Id == request.SubmissionId);
         if (submission == null)
         {
+            _logger.LogWarning($"Submission for required review does not exist");
             throw new ArgumentException("Submission does not exists");
         }
 
         var mentorExists = await _context.Mentors.AnyAsync(x => x.Id == request.MentorId);
         if (!mentorExists)
         {
+            _logger.LogWarning($"Mentor for submission does not exist");
             throw new ArgumentException("Mentor does not exists");
         }
 
@@ -113,6 +115,8 @@ public class ReviewService : IReviewService
             ReviewedDate = x.ReviewedDate            
         }).ToListAsync();
 
+        _logger.LogInformation("Fetched all reviews");
+
         return reviews;
     }
 
@@ -122,7 +126,7 @@ public class ReviewService : IReviewService
 
         if (review == null)
         {
-            _logger.LogInformation($"Review with {id} not found");
+            _logger.LogWarning($"Review with {id} not found");
             return null;
         }
 

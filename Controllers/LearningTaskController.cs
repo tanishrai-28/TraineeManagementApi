@@ -10,21 +10,17 @@ namespace TraineeManagementApi.Controllers;
 public class LearningTaskController : ControllerBase
 {
     public readonly ILearningTaskService _service;
-    private readonly ILogger<LearningTaskController> _logger;
 
-    public LearningTaskController(ILearningTaskService service, ILogger<LearningTaskController> logger)
+    public LearningTaskController(ILearningTaskService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-
         return Ok(await _service.GetAllAsync());
-
     }
 
     [HttpGet("{id}")]
@@ -39,17 +35,14 @@ public class LearningTaskController : ControllerBase
             });
         }
 
-
         var learningTask = await _service.GetByIdAsync(id);
 
         if (learningTask == null)
         {
-            _logger.LogInformation("Learning task record not found");
             return NotFound();
         }
 
         return Ok(learningTask);
-
     }
 
     [HttpPost]
@@ -84,12 +77,10 @@ public class LearningTaskController : ControllerBase
             });
         }
 
-
         bool updated = await _service.UpdateAsync(id, request);
 
         if (!updated)
         {
-            _logger.LogInformation("Learning task record not found");
             return NotFound();
         }
 
@@ -110,12 +101,10 @@ public class LearningTaskController : ControllerBase
             });
         }
 
-
         bool deleted = await _service.DeleteAsync(id);
 
         if (!deleted)
         {
-            _logger.LogError($"Learning task to be deleted not found");
             return NotFound();
         }
 

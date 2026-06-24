@@ -23,6 +23,7 @@ public class MentorService : IMentorService
     public async Task<List<MentorResponse>> GetAllAsync()
     {
         var mentors = await _context.Mentors.ToListAsync();
+        _logger.LogInformation("Fetched all mentors");
 
         return [.. mentors.Select(MaptoResponse)];
     }
@@ -44,12 +45,14 @@ public class MentorService : IMentorService
 
         if (mentor == null)
         {
-            _logger.LogInformation($"Mentor with {id} not found");
+            _logger.LogWarning($"Mentor with {id} not found");
+            return null;
         }
 
         var response = MaptoResponse(mentor!);
 
-        await _cache.SetAsync(cachedKey, response);
+        await _cache.SetAsync(cachedKey, response, 2);
+        _logger.LogInformation($"Fetched mentor with id: {id} and saved to cache");
 
         return response;
     }
@@ -81,7 +84,11 @@ public class MentorService : IMentorService
         var cachedKey = $"mentor:{id}";
         var mentor = await _context.Mentors.FindAsync(id);
 
-        if (mentor == null) return false;
+        if (mentor == null)
+        {
+            _logger.LogWarning("Mentor record not found");
+            return false;
+        }
 
         mentor.FirstName = request.FirstName;
         mentor.LastName = request.LastName;
@@ -91,7 +98,7 @@ public class MentorService : IMentorService
         mentor.UpdatedDate = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation($"Mentor id {id} updated");
+        _logger.LogInformation($"Mentor id {id} updated and removed from cache");
 
         await _cache.RemoveAsync(cachedKey);
 
@@ -103,12 +110,16 @@ public class MentorService : IMentorService
         var cachedKey = $"mentor:{id}";
         var mentor = await _context.Mentors.FindAsync(id);
 
-        if (mentor == null) return false;
+        if (mentor == null)
+        {
+            _logger.LogWarning($"Mentor to be deleted not found");
+            return false;
+        }
 
         _context.Mentors.Remove(mentor);
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation($"Mentor with id {id} deleted");
+        _logger.LogInformation($"Mentor with id {id} deleted and removed from cache");
 
         await _cache.RemoveAsync(cachedKey);
 

@@ -20,6 +20,7 @@ public class LearningTaskService : ILearningTaskService
     public async Task<List<LearningTaskResponse>> GetAllAsync()
     {
         var learningTasks = await _context.LearningTasks.ToListAsync();
+        _logger.LogInformation("Fetched all Learning tasks");
 
         return learningTasks.Select(MaptoResponse).ToList();
     }
@@ -30,10 +31,12 @@ public class LearningTaskService : ILearningTaskService
 
         if (learningTask == null)
         {
-            _logger.LogInformation($"Learning Task with {id} not found");
+            _logger.LogWarning($"Learning Task with {id} not found");
+            return null;
         }
 
-        return learningTask == null ? null : MaptoResponse(learningTask);
+        _logger.LogInformation($"Fetched learning task with id: {id}");
+        return MaptoResponse(learningTask);
     }
 
     public async Task<LearningTaskResponse> CreateAsync(CreateLearningTaskRequest request)
@@ -62,7 +65,11 @@ public class LearningTaskService : ILearningTaskService
     {
         var learningTask = await _context.LearningTasks.FindAsync(id);
 
-        if (learningTask == null) return false;
+        if (learningTask == null)
+        {
+            _logger.LogWarning("Learning task record not found");
+            return false;
+        }
 
         learningTask.Title = request.Title;
         learningTask.Description = request.Description;
@@ -81,7 +88,10 @@ public class LearningTaskService : ILearningTaskService
     {
         var learningTask = await _context.LearningTasks.FindAsync(id);
 
-        if (learningTask == null) return false;
+        if (learningTask == null) {
+            _logger.LogWarning($"Learning task to be deleted not found");
+            return false;
+        }
 
         _context.LearningTasks.Remove(learningTask);
 

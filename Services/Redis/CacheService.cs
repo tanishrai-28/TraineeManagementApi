@@ -29,12 +29,12 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogInformation(ex, "Redis offline. Fallback to MySQL database");
+            _logger.LogCritical(ex, "Redis offline. Fallback to MySQL database");
             return default;
         }
     }
 
-    public async Task SetAsync<T>(string key, T value)
+    public async Task SetAsync<T>(string key, T value, int expiry)
     {
         try
         {
@@ -42,12 +42,12 @@ public class CacheService : ICacheService
 
             await _cache.SetStringAsync(key, serializeValue, new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(expiry) // Add expiry from input
             });
         }
         catch (Exception ex)
         {
-            _logger.LogInformation(ex, "Failed to store in cache");
+            _logger.LogCritical(ex, "Failed to store in cache");
         }
     }
 
@@ -59,7 +59,7 @@ public class CacheService : ICacheService
         }
         catch (Exception ex)
         {
-            _logger.LogInformation(ex, "Failed to delete from cache");
+            _logger.LogCritical(ex, "Failed to delete from cache");
         }
     }
 }

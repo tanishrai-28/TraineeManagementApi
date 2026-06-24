@@ -32,14 +32,14 @@ public class UserService : IUserService
 
         if (user == null)
         {
-            _logger.LogInformation("Invalid user credentials entered");
+            _logger.LogWarning("Invalid user credentials entered");
             throw new UnauthorizedAccessException("Invalid Credentials!");
         }
 
         bool isValid = PasswordHasher.VerifyPassword(request.Password, user.PasswordHash);
         if (!isValid)
         {
-            _logger.LogInformation("Invalid user credentials entered");
+            _logger.LogWarning("Invalid user credentials entered");
             throw new UnauthorizedAccessException("Invalid Credentials!");
         }
 
@@ -71,7 +71,7 @@ public class UserService : IUserService
             new Claim(ClaimTypes.Role, role)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
@@ -81,6 +81,8 @@ public class UserService : IUserService
             expires: DateTime.Now.AddSeconds(Convert.ToInt32(_expiresIn)),
             signingCredentials: creds
         );
+
+        _logger.LogInformation("JWT token generated");
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

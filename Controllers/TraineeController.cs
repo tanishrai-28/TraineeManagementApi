@@ -11,22 +11,18 @@ namespace TraineeManagementApi.Controllers
     public class TraineesController : ControllerBase
     {
         public readonly ITraineeService _service;
-        private readonly ILogger<TraineesController> _logger;
 
 
-        public TraineesController(ITraineeService service, ILogger<TraineesController> logger)
+        public TraineesController(ITraineeService service)
         {
             _service = service;
-            _logger = logger;
         }
 
         [HttpGet]
         // [Authorize]
         public async Task<IActionResult> GetAll([FromQuery] TraineeQueryFilter filter, CancellationToken cancellationToken = default)
         {
-
             return Ok(await _service.GetAllAsync(filter, cancellationToken));
-
         }
 
         [HttpGet("{id}")]
@@ -41,12 +37,10 @@ namespace TraineeManagementApi.Controllers
                 });
             }
 
-
             var trainee = await _service.GetByIdAsync(id);
 
             if (trainee == null)
             {
-                _logger.LogInformation("User record not found");
                 return NotFound();
             }
 
@@ -87,17 +81,14 @@ namespace TraineeManagementApi.Controllers
                 });
             }
 
-
             bool updated = await _service.UpdateAsync(id, request);
 
             if (!updated)
             {
-                _logger.LogInformation("User record not found");
                 return NotFound();
             }
 
             return Ok();
-
         }
 
         [HttpDelete("{id}")]
@@ -112,17 +103,14 @@ namespace TraineeManagementApi.Controllers
                 });
             }
 
-
             bool deleted = await _service.DeleteAsync(id);
 
             if (!deleted)
             {
-                _logger.LogError($"User to be deleted not found");
                 return NotFound();
             }
 
             return NoContent();
-
         }
 
     }

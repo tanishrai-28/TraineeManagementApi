@@ -11,20 +11,16 @@ namespace TraineeManagementApi.Controllers;
 public class ReviewController : ControllerBase
 {
     public readonly IReviewService _service;
-    private readonly ILogger<ReviewController> _logger;
 
-    public ReviewController(IReviewService service, ILogger<ReviewController> logger)
+    public ReviewController(IReviewService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-
         return Ok(await _service.GetAllAsync());
-
     }
 
     [HttpGet("{id}")]
@@ -38,12 +34,10 @@ public class ReviewController : ControllerBase
             });
         }
 
-
         var review = await _service.GetByIdAsync(id);
 
         if (review == null)
         {
-            _logger.LogInformation("Review record not found");
             return NotFound();
         }
 
@@ -67,6 +61,5 @@ public class ReviewController : ControllerBase
         return Created("/api/reviews",
             reviews
         );
-
     }
 }

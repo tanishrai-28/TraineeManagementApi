@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TraineeManagementApi.DTO.SubmissionDTO;
 using TraineeManagementApi.Services.FileStorage;
@@ -13,21 +12,17 @@ public class SubmissionController : ControllerBase
 {
     public readonly ISubmissionService _service;
     public readonly ISubmissionFileService _submissionFileService;
-    private readonly ILogger<SubmissionController> _logger;
 
-    public SubmissionController(ISubmissionService service, ISubmissionFileService submissionFileService, ILogger<SubmissionController> logger)
+    public SubmissionController(ISubmissionService service, ISubmissionFileService submissionFileService)
     {
         _service = service;
         _submissionFileService = submissionFileService;
-        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-
         return Ok(await _service.GetAllAsync());
-
     }
 
     [HttpGet("{id}")]
@@ -41,12 +36,10 @@ public class SubmissionController : ControllerBase
             });
         }
 
-
         var submission = await _service.GetByIdAsync(id);
 
         if (submission == null)
         {
-            _logger.LogInformation("Submission record not found");
             return NotFound();
         }
 

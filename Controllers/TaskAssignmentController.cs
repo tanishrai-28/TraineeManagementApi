@@ -11,20 +11,16 @@ namespace TraineeManagementApi.Controllers;
 public class TaskAssignmentController : ControllerBase
 {
     public readonly ITaskAssignmentService _service;
-    private readonly ILogger<TaskAssignmentController> _logger;
 
-    public TaskAssignmentController(ITaskAssignmentService service, ILogger<TaskAssignmentController> logger)
+    public TaskAssignmentController(ITaskAssignmentService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-
         return Ok(await _service.GetAllAsync());
-
     }
 
     [HttpGet("{id}")]
@@ -43,7 +39,6 @@ public class TaskAssignmentController : ControllerBase
 
         if (taskAssignment == null)
         {
-            _logger.LogInformation("Task Assignment record not found");
             return NotFound();
         }
 
@@ -85,7 +80,6 @@ public class TaskAssignmentController : ControllerBase
 
         if (!updated)
         {
-            _logger.LogInformation("Task assignment record not found");
             return NotFound();
         }
 

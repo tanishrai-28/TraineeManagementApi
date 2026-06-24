@@ -30,7 +30,7 @@ public class RedisService: IRedisService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to connect to redis");
+            _logger.LogCritical(ex, "Failed to connect to redis");
             return false;
         }
     }
