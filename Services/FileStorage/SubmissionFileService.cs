@@ -93,7 +93,7 @@ public class SubmissionFileService : ISubmissionFileService
             RequestedAt = DateTime.UtcNow
         };
 
-        await _rabbitMqPublisher.PublishAsync(message, RabbitMQQueues.SubmissionProcessingQueue);
+        await _rabbitMqPublisher.PublishAsync(message, RabbitMQQueues.SubmissionProcessingQueue, cancellationToken);
 
         return new SubmissionFileResponse
         {

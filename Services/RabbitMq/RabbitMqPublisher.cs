@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using RabbitMQ.Client;
+using TraineeManagementApi.Constants;
 
 namespace TraineeManagementApi.Services.RabbitMq;
 
@@ -15,7 +16,7 @@ public class RabbitMqPublisher : IRabbitMqPublisher
         _logger = logger;
     }
 
-    public async Task PublishAsync<T>(T message, string queueName)
+    public async Task PublishAsync<T>(T message, string queueName, CancellationToken cancellationToken)
     {
         try
         {
@@ -23,11 +24,17 @@ public class RabbitMqPublisher : IRabbitMqPublisher
             using var channel = await connection.CreateChannelAsync();
 
             await channel.QueueDeclareAsync(
-                queue: queueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false
-            );
+            queue: RabbitMqConstants.SubmissionProcessingQueue,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: new Dictionary<string, object?>
+            {
+                ["x-dead-letter-exchange"] = RabbitMqConstants.DeadLetterExchange,
+                ["x-dead-letter-routing-key"] = RabbitMqConstants.DeadLetterRoutingKey,
+            },
+            cancellationToken: cancellationToken
+        );
 
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
