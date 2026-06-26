@@ -1,5 +1,7 @@
 using RabbitMQ.Client;
 using TraineeManagementApi.Extensions;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using TraineeManagementApi.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,8 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddRedisContext(builder.Configuration);
 
+builder.Services.AddHealthChecksExtensions(builder.Configuration);
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -49,6 +53,23 @@ if (app.Environment.IsDevelopment())
         options.DocumentPath = "/openapi/v1.json";
     });
 }
+
+app.MapHealthChecks(
+    "/health/live",
+    new HealthCheckOptions
+    {
+        Predicate = _ => false
+    }
+);
+
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+        Predicate = _ => true,
+        ResponseWriter = HealthCheckReporter.WriteHealthCheckResponse
+    }
+);
 
 app.UseHttpsRedirection();
 

@@ -24,17 +24,17 @@ public class RabbitMqPublisher : IRabbitMqPublisher
             using var channel = await connection.CreateChannelAsync();
 
             await channel.QueueDeclareAsync(
-            queue: RabbitMqConstants.SubmissionProcessingQueue,
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: new Dictionary<string, object?>
-            {
-                ["x-dead-letter-exchange"] = RabbitMqConstants.DeadLetterExchange,
-                ["x-dead-letter-routing-key"] = RabbitMqConstants.DeadLetterRoutingKey,
-            },
-            cancellationToken: cancellationToken
-        );
+                queue: RabbitMqConstants.SubmissionProcessingQueue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: new Dictionary<string, object?>
+                {
+                    ["x-dead-letter-exchange"] = RabbitMqConstants.DeadLetterExchange,
+                    ["x-dead-letter-routing-key"] = RabbitMqConstants.DeadLetterRoutingKey,
+                },
+                cancellationToken: cancellationToken
+            );
 
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
@@ -42,6 +42,8 @@ public class RabbitMqPublisher : IRabbitMqPublisher
             {
                 Persistent = true
             };
+
+            _logger.LogInformation("Rabbitmq queue published");
 
             await channel.BasicPublishAsync(
                 exchange: "",

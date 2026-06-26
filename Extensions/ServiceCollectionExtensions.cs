@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
 using TraineeManagementApi.Configurations;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.Services;
@@ -52,6 +53,29 @@ public static class ServiceCollectionExtensions
             options.Configuration = configuration.GetConnectionString("Redis");
             options.InstanceName = "TraineeManagement:";
         });
+
+        return services;
+    }
+
+    public static IServiceCollection AddHealthChecksExtensions(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHealthChecks()
+            .AddMySql(
+                configuration.GetConnectionString("MySQL")!,
+                name: "mysql",
+                tags: new [] {"ready"}
+            )
+            .AddRedis(
+                configuration.GetConnectionString("Redis")!,
+                name: "redis",
+                tags: new [] {"ready"}
+            )
+            .AddRabbitMQ(
+                async sp => await sp.GetRequiredService<ConnectionFactory>().CreateConnectionAsync(),
+                name: "RabbitMQ",
+                tags: new [] {"ready"}
+            );
+
 
         return services;
     }

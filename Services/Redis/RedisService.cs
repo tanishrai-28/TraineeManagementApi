@@ -26,6 +26,8 @@ public class RedisService: IRedisService
 
             var value = await _cache.GetStringAsync(key);
 
+            if(value == "connected") _logger.LogInformation("Redis online");
+
             return value == "connected";
         }
         catch (Exception ex)

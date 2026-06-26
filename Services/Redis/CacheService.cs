@@ -25,6 +25,8 @@ public class CacheService : ICacheService
                 return default;
             }
 
+            _logger.LogInformation("Data fetched from cache");
+
             return JsonSerializer.Deserialize<T>(value);
         }
         catch (Exception ex)
@@ -44,6 +46,7 @@ public class CacheService : ICacheService
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(expiry) // Add expiry from input
             });
+            _logger.LogInformation("Data added to cache");
         }
         catch (Exception ex)
         {
@@ -56,6 +59,7 @@ public class CacheService : ICacheService
         try
         {
             await _cache.RemoveAsync(key);
+            _logger.LogInformation("Data removed from cache");
         }
         catch (Exception ex)
         {
