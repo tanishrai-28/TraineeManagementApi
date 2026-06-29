@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.Helpers;
 using TraineeManagementApi.Models;
@@ -8,9 +9,14 @@ public static class WebApplicationExtensions
 {
     public static async Task SeedDatabaseAsync(this WebApplication app)
     {
-        using (var scope = app.Services.CreateAsyncScope())
+        try
         {
+            using var scope = app.Services.CreateAsyncScope();
+
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var pending = await context.Database.GetPendingMigrationsAsync();
+
+            context.Database.Migrate();
 
             if (!context.Users.Any())
             {
@@ -27,5 +33,11 @@ public static class WebApplicationExtensions
                 await context.SaveChangesAsync();
             }
         }
+
+        catch (Exception ex)
+        {
+            throw new Exception("Failed to seed database: " + ex);
+        }
+
     }
 }

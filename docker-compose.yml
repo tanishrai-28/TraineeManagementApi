@@ -1,34 +1,180 @@
-version: '3.8'
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    name: mysql-data
+
+  redis-data:
+    name: redis-data
+  
+  rabbitmq-data:
+    name: rabbitmq-data
+  
+  submission-files:
+    name: submission-files
+
 services:
-  redis: 
-    image: docker-registry-002.zeuslearning.com/zeuslearning/redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
+  mysql:
+    image: docker-registry-002.zeuslearning.com/zeuslearning/mysql:8.0.15
+    container_name: mysql
+
     restart: unless-stopped
 
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: TraineeManagement
+
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin","ping","-h","localhost","-uroot","-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 100s
+
+    networks:
+      - backend
+
+
+  redis:
+    image: docker-registry-002.zeuslearning.com/zeuslearning/redis:7-alpine
+    container_name: redis
+    ports: 
+      - "6379:6379"
+
+    restart: unless-stopped
+
+    command: redis-server --appendonly yes
+
+    volumes:
+      - redis-data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 100s
+
+    networks:
+      - backend
+  
   rabbitmq:
     image: docker-registry-002.zeuslearning.com/zeuslearning/rabbitmq:3.13.7-management
     container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+
+    restart: unless-stopped
+
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
+
+    ports:
+      - "15672:15672"
+
     volumes:
-      - rabbitmq-lib:/var/lib/rabbitmq/
-      - rabbitmq-log:/var/log/rabbitmq
-    restart: unless-stopped
+      - rabbitmq-data:/var/lib/rabbitmq
     
-  
-volumes:
-  redis-data:
-    driver: local
-  rabbitmq-lib:
-    driver: local
-  rabbitmq-log:
-    driver: local
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 100s
+
+    networks:
+      - backend
+
+  traineemanagementapi:
+    image: traineemanagementapi:1.0
+    container_name: traineemanagementapi
+
+    restart: unless-stopped
+
+    ports:
+      - "7284:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+
+      ConnectionStrings__MySQL: Server=mysql;Port=3306;Database=TraineeManagement;User ID=root;Password=root;AllowPublicKeyRetrieval=True;
+      ConnectionStrings__Redis: redis:6379
+
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: admin
+      RabbitMQ__Password: admin
+      RabbitMQ__VirtualHost: /
+
+      Storage__RootPath: /app/SubmissionFiles
+
+    volumes:
+      - submission-files:/app/SubmissionFiles
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 50s
+
+    networks:
+      - backend
+
+  trainingdirectory:
+    image: trainingdirectoryapi:1.0
+    container_name: trainingdirectoryapi
+
+    restart: unless-stopped
+
+    expose:
+      - "8080"
+
+    networks:
+      - backend
+
+  submissionprocessor:
+    image: submissionprocessorworker:1.0
+    container_name: submissionprocessorworker
+
+    restart: unless-stopped
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+
+      ConnectionStrings__MySQL: Server=mysql;Port=3306;Database=TraineeManagement;User ID=root;Password=root;AllowPublicKeyRetrieval=True;
+
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: admin
+      RabbitMQ__Password: admin
+      RabbitMQ__VirtualHost: /
+
+      Storage__RootPath: /app/SubmissionFiles
+
+      TraineeDirectoryApi__BaseUrl: http://trainingdirectoryapi:8080
+      TraineeDirectoryApi__TimeOutSeconds: 5
+
+    volumes:
+      - submission-files:/app/SubmissionFiles
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+    networks:
+      - backend
