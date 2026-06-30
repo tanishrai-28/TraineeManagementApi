@@ -43,7 +43,7 @@ public class ProcessingJobService : IProcessingJobService
         return await _context.ProcessingJobs.ToListAsync();
     }
 
-    public async Task<string> GetStatusById(Guid id)
+    public async Task<string?> GetStatusById(Guid id)
     {
         var processingJob = await _context.ProcessingJobs.FindAsync(id);
         if(processingJob == null)

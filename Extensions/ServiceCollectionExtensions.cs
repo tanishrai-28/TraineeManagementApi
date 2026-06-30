@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
+using StackExchange.Redis;
 using TraineeManagementApi.Configurations;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.Services;
@@ -25,12 +26,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IProcessingJobService, ProcessingJobService>();
 
-        services.AddScoped<IRedisService, RedisService>();
+        services.AddSingleton<IRedisService, RedisService>();
 
         services.AddSingleton<ICacheService, CacheService>();
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
         services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
-
         return services;
     }
 
@@ -48,10 +48,36 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRedisContext(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddStackExchangeRedisCache(options =>
+        // services.AddStackExchangeRedisCache(options =>
+        // {
+        //     options.Configuration = configuration.GetConnectionString("Redis");
+        //     options.InstanceName = "TraineeManagement:";
+        // });
+
+        services.AddSingleton<IConnectionMultiplexer> (sp =>
         {
-            options.Configuration = configuration.GetConnectionString("Redis");
-            options.InstanceName = "TraineeManagement:";
+            var logger = sp.GetRequiredService<ILogger<Program>>();
+            var redis = ConnectionMultiplexer.Connect(new ConfigurationOptions
+            {
+                EndPoints = {configuration.GetConnectionString("Redis")!},
+                AbortOnConnectFail = false,
+                ConnectRetry = 3,
+                ReconnectRetryPolicy = new ExponentialRetry(5000)
+            });
+
+            redis.ConnectionFailed += (sender, args) =>
+                logger.LogError(args.Exception, "Redis Connection failed. Endpoint: {Endpoint}", args.EndPoint);
+
+            redis.ConnectionRestored += (sender, args) =>
+                logger.LogInformation(args.Exception, "Redis Connection restored. Endpoint: {Endpoint}", args.EndPoint);
+
+            redis.ErrorMessage += (sender, args) =>
+                logger.LogError(args.Message, "Redis Error. Endpoint: {Endpoint}", args.EndPoint);
+
+            redis.ConfigurationChanged += (sender, args) =>
+                logger.LogInformation("Redis Connection Configuration changed. Endpoint: {Endpoint}", args.EndPoint);
+
+            return redis;
         });
 
         return services;
