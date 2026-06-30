@@ -1,7 +1,5 @@
 using System.Linq.Dynamic.Core;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Ocsp;
 using TraineeManagementApi.Models;
 
 namespace TraineeManagementApi.Helpers;

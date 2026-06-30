@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Distributed;
 using StackExchange.Redis;
 
 namespace TraineeManagementApi.Services.Redis;

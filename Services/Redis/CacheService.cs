@@ -5,7 +5,6 @@ namespace TraineeManagementApi.Services.Redis;
 
 public class CacheService : ICacheService
 {
-    // private readonly IDistributedCache _cache;
     private readonly IConnectionMultiplexer _cache;
     private readonly ILogger<CacheService> _logger;
 

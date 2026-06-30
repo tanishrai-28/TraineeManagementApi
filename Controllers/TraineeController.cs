@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TraineeManagementApi.DTO.TraineeDTO;
 using TraineeManagementApi.DTO.Pagination;

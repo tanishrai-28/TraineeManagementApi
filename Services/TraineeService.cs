@@ -6,7 +6,6 @@ using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.Helpers;
 using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Services.Redis;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace TraineeManagementApi.Services
 {
@@ -86,8 +85,6 @@ namespace TraineeManagementApi.Services
 
         public async Task<TraineeResponse> CreateAsync(CreateTraineeRequest request)
         {
-            // try
-            // {
             var trainee = new Trainee()
             {
                 FirstName = request.FirstName,
@@ -106,12 +103,6 @@ namespace TraineeManagementApi.Services
             _logger.LogInformation($"User with email {request.Email} created.");
 
             return MaptoResponse(trainee);
-            // }
-            // catch (Exception e)
-            // {
-
-            //     throw new Exception("Failed to create trainee -> ", e);
-            // }
         }
 
         public async Task<bool> UpdateAsync(long id, UpdateTraineeRequest request)

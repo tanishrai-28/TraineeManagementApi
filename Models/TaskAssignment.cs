@@ -1,5 +1,3 @@
-using TraineeManagementApi.DTO.TaskAssignmentDTO;
-
 namespace TraineeManagementApi.Models;
 
 public class TaskAssignment

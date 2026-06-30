@@ -8,14 +8,11 @@ namespace TraineeManagementApi.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly ILogger<AuthController> _logger;
     private readonly IUserService _service;
-    public AuthController(IUserService service, ILogger<AuthController> logger)
+    public AuthController(IUserService service)
     {
-        _logger = logger;
         _service = service;
     }
-
 
     [HttpPost("login")]
     public async Task<IActionResult> LoginUser(UserLogin request)

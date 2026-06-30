@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Configurations;
 using TraineeManagementApi.Context;
@@ -11,17 +10,15 @@ namespace TraineeManagementApi.Services.FileStorage;
 
 public class SubmissionFileService : ISubmissionFileService
 {
-    private readonly ILogger<SubmissionFileService> _logger;
     private readonly ApplicationDbContext _context;
     private readonly IFileStorageService _storage;
     private readonly IRabbitMqPublisher _rabbitMqPublisher;
 
-    public SubmissionFileService(ApplicationDbContext context, IFileStorageService storage, IRabbitMqPublisher rabbitMqPublisher, ILogger<SubmissionFileService> logger)
+    public SubmissionFileService(ApplicationDbContext context, IFileStorageService storage, IRabbitMqPublisher rabbitMqPublisher)
     {
         _context = context;
         _storage = storage;
         _rabbitMqPublisher = rabbitMqPublisher;
-        _logger = logger;
     }
 
     public async Task<SubmissionFileResponse> UploadAsync(long submissionId, IFormFile file, string uploadedBy, CancellationToken cancellationToken = default)

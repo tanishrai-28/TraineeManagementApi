@@ -6,7 +6,6 @@ namespace TraineeManagementApi.Services.Interface;
 public interface ITraineeService
 {
     Task<List<TraineeResponse>> GetAllAsync(TraineeQueryFilter filter, CancellationToken cancellationToken = default);
-    // Task<List<TraineeResponse>> GetAllAsync(string search, TraineeQueryFilter filter, CancellationToken cancellationToken = default);
 
     Task<TraineeResponse?> GetByIdAsync(long id);
 
