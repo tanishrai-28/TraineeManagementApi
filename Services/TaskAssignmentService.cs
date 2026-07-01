@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.TaskAssignmentDTO;
+using TraineeManagementApi.Exceptions;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Services.Redis;
@@ -26,27 +27,27 @@ public class TaskAssignmentService : ITaskAssignmentService
         if (!traineeExists)
         {
             _logger.LogWarning($"Trainee for required task assignment does not exist");
-            throw new ArgumentException("Trainee does not exists");
+            throw new BadRequestException("Trainee does not exists");
         }
 
         var mentorExists = await _context.Mentors.AnyAsync(x => x.Id == request.MentorId);
         if (!mentorExists)
         {
             _logger.LogWarning($"Mentor for required task assignment does not exist");
-            throw new ArgumentException("Mentor does not exists");
+            throw new BadRequestException("Mentor does not exists");
         }
 
         var learningTaskExists = await _context.LearningTasks.AnyAsync(x => x.Id == request.LearningTaskId);
         if (!learningTaskExists)
         {
             _logger.LogWarning($"Learning task for required task assignment does not exist");
-            throw new ArgumentException("Learning Task does not exists");
+            throw new BadRequestException("Learning Task does not exists");
         }
 
         if (request.DueDate.Date < request.AssignedDate.Date)
         {
             _logger.LogWarning($"Due date cannot be before assigned date");
-            throw new ArgumentException("Due date cannot be before assigned date");
+            throw new BadRequestException("Due date cannot be before assigned date");
         }
 
         var taskAssignment = new TaskAssignment()
@@ -118,7 +119,7 @@ public class TaskAssignmentService : ITaskAssignmentService
         if (taskAssignment == null)
         {
             _logger.LogWarning($"Task Assignment with {id} not found");
-            return null;
+            throw new NotFoundException($"Task Assignment with {id} not found");
         }
 
         var response = new TaskAssignmentResponse

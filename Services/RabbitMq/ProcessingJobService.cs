@@ -3,6 +3,7 @@ using TraineeManagementApi.Configurations;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.ProcessingJobDTO;
 using TraineeManagementApi.DTO.SubmissionDTO;
+using TraineeManagementApi.Exceptions;
 using TraineeManagementApi.Models;
 
 namespace TraineeManagementApi.Services.RabbitMq;
@@ -48,7 +49,7 @@ public class ProcessingJobService : IProcessingJobService
         var processingJob = await _context.ProcessingJobs.FindAsync(id);
         if(processingJob == null)
         {
-            return null;
+            throw new NotFoundException("Processing job not found");
         }
         return processingJob.Status;
     }
@@ -59,13 +60,13 @@ public class ProcessingJobService : IProcessingJobService
         if(processingJob == null)
         {
             _logger.LogWarning("Processing job not found");
-            return null;
+            throw new NotFoundException("Processing job not found");
         }
 
         if(!processingJob.Status.Equals("Failed"))
         {
             _logger.LogWarning("Processing job not failed.");
-            throw new Exception("Processing job is not failed");
+            throw new BadRequestException("Processing job is not failed");
         }
 
         processingJob.Attempts = 0;

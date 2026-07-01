@@ -3,6 +3,7 @@ using TraineeManagementApi.Configurations;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.SubmissionDTO;
 using TraineeManagementApi.DTO.SubmissionFileDTO;
+using TraineeManagementApi.Exceptions;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.RabbitMq;
 
@@ -25,24 +26,24 @@ public class SubmissionFileService : ISubmissionFileService
     {
         if(file == null)
         {
-            throw new Exception("File not attached");
+            throw new FileStorageException("File not attached");
         }
 
         if(file.Length == 0)
         {
-            throw new Exception("Empty file entered");
+            throw new FileStorageException("Empty file entered");
         }
 
         if(file.Length > 10 * 1024 * 1024)
         {
-            throw new Exception("File size cannot get greater than 10MB");
+            throw new FileStorageException("File size cannot get greater than 10MB");
         }
 
         string[] allowedExtensions = {".pdf", ".jpg", ".docx"};
         var extension = Path.GetExtension(file.FileName).ToLower();
         if(!allowedExtensions.Contains(extension))
         {
-            throw new Exception("Extension not allowed");
+            throw new FileStorageException("Extension not allowed");
         }
 
 
@@ -110,14 +111,14 @@ public class SubmissionFileService : ISubmissionFileService
 
         if(file == null)
         {
-            throw new KeyNotFoundException("File metadata not found");
+            throw new NotFoundException("File metadata not found");
         }
 
         var exists = await _storage.ExistsAsync(file.GeneratedFileName);
 
         if(!exists)
         {
-            throw new FileNotFoundException("File not found");
+            throw new NotFoundException("File not found");
         }
 
         var stream = await _storage.OpenReadAsync(file.GeneratedFileName, cancellationToken);
@@ -136,7 +137,7 @@ public class SubmissionFileService : ISubmissionFileService
 
         if(file == null)
         {
-            throw new KeyNotFoundException("File metadata not found");
+            throw new NotFoundException("File metadata not found");
         }
 
         var exists = await _storage.ExistsAsync(file.GeneratedFileName);

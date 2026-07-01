@@ -6,6 +6,7 @@ using TraineeManagementApi.DTO.Pagination;
 using TraineeManagementApi.Helpers;
 using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Services.Redis;
+using TraineeManagementApi.Exceptions;
 
 namespace TraineeManagementApi.Services
 {
@@ -72,7 +73,7 @@ namespace TraineeManagementApi.Services
             if (trainee == null)
             {
                 _logger.LogWarning($"Trainee with {id} not found");
-                return null;
+                throw new NotFoundException($"Trainee with {id} not found");
             }
 
             var response = MaptoResponse(trainee);

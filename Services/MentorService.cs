@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.MentorDTO;
+using TraineeManagementApi.Exceptions;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Services.Redis;
@@ -46,7 +47,7 @@ public class MentorService : IMentorService
         if (mentor == null)
         {
             _logger.LogWarning($"Mentor with {id} not found");
-            return null;
+            throw new NotFoundException($"Mentor with {id} not found");
         }
 
         var response = MaptoResponse(mentor!);

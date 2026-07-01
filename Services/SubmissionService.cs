@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.SubmissionDTO;
+using TraineeManagementApi.Exceptions;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
 using TraineeManagementApi.Services.Redis;
@@ -26,7 +27,7 @@ public class SubmissionService : ISubmissionService
         if (!taskAssignmentExists)
         {
             _logger.LogWarning($"Submission for required task assignment does not exist");
-            throw new ArgumentException("Task assignment does not exists");
+            throw new BadRequestException("Task assignment does not exists");
         }
 
         var existingSubmission = await _context.Submissions.FirstOrDefaultAsync(x => x.TaskAssignmentId == request.TaskAssignmentId);
@@ -129,7 +130,7 @@ public class SubmissionService : ISubmissionService
         if (submission == null)
         {
             _logger.LogWarning($"Submission with {id} not found");
-            return null;
+            throw new NotFoundException($"Submission with {id} not found");
         }
 
         var response = new SubmissionResponse

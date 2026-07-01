@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.ReviewDTO;
+using TraineeManagementApi.Exceptions;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
 
@@ -23,14 +24,14 @@ public class ReviewService : IReviewService
         if (submission == null)
         {
             _logger.LogWarning($"Submission for required review does not exist");
-            throw new ArgumentException("Submission does not exists");
+            throw new BadRequestException("Submission does not exists");
         }
 
         var mentorExists = await _context.Mentors.AnyAsync(x => x.Id == request.MentorId);
         if (!mentorExists)
         {
             _logger.LogWarning($"Mentor for submission does not exist");
-            throw new ArgumentException("Mentor does not exists");
+            throw new BadRequestException("Mentor does not exists");
         }
 
         var existingReview = await _context.Reviews.FirstOrDefaultAsync(x => x.SubmissionId == request.SubmissionId);
@@ -112,7 +113,7 @@ public class ReviewService : IReviewService
             Feedback = x.Feedback,
             Score = x.Score,
             ReviewStatus = x.ReviewStatus,
-            ReviewedDate = x.ReviewedDate            
+            ReviewedDate = x.ReviewedDate
         }).ToListAsync();
 
         _logger.LogInformation("Fetched all reviews");
@@ -127,7 +128,7 @@ public class ReviewService : IReviewService
         if (review == null)
         {
             _logger.LogWarning($"Review with {id} not found");
-            return null;
+            throw new NotFoundException($"Review with {id} not found");
         }
 
         return new ReviewResponse

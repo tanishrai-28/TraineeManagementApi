@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TraineeManagementApi.Context;
 using TraineeManagementApi.DTO.LearningTaskDTO;
+using TraineeManagementApi.Exceptions;
 using TraineeManagementApi.Models;
 using TraineeManagementApi.Services.Interface;
 
@@ -32,7 +33,7 @@ public class LearningTaskService : ILearningTaskService
         if (learningTask == null)
         {
             _logger.LogWarning($"Learning Task with {id} not found");
-            return null;
+            throw new NotFoundException($"Learning Task with {id} not found");
         }
 
         _logger.LogInformation($"Fetched learning task with id: {id}");
@@ -68,7 +69,7 @@ public class LearningTaskService : ILearningTaskService
         if (learningTask == null)
         {
             _logger.LogWarning("Learning task record not found");
-            return false;
+            throw new BadRequestException($"Learning Task with {id} not found");
         }
 
         learningTask.Title = request.Title;
